@@ -1,0 +1,16 @@
+# 系統
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 編輯器
+.vscode/
+.idea/
+*.swp
+
+# 暫存
+*.tmp
+*~
+
+# Claude Code
+.claude/

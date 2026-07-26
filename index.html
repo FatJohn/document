@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>胖胖的簡報</title>
+<style>
+  :root {
+    --paper: #F6F7F9;
+    --card: #FFFFFF;
+    --ink: #131720;
+    --ink-soft: #39414F;
+    --muted: #5D6673;
+    --line: #DCE0E7;
+    --accent: #4A57C8;
+    --accent-soft: #EEF0FC;
+
+    --display: "Avenir Next", Futura, "Segoe UI Variable Display", "Helvetica Neue", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, "JetBrains Mono", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0E1219; --card: #161C26; --ink: #E9ECF2; --ink-soft: #BCC3D0;
+      --muted: #8A93A3; --line: #262E3B; --accent: #8E98F7; --accent-soft: #1C2138;
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "PingFang TC", "Noto Sans TC", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  .wrap {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 8vw, 5.5rem) clamp(1.25rem, 5vw, 2rem) 4rem;
+  }
+
+  header { border-bottom: 1px solid var(--line); padding-bottom: 1.75rem; }
+
+  .who {
+    font-family: var(--display);
+    font-size: clamp(1.9rem, 5vw, 2.6rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  .what {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0.6rem 0 0;
+  }
+
+  h2 {
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    margin: 2.75rem 0 1rem;
+  }
+
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+
+  a.deck {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 0.4rem;
+    padding: 1.35rem 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s, transform 0.2s, background 0.2s;
+  }
+
+  a.deck:hover, a.deck:focus-visible {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    transform: translateX(2px);
+  }
+
+  a.deck:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    a.deck { transition: none; }
+    a.deck:hover, a.deck:focus-visible { transform: none; }
+  }
+
+  .deck .title {
+    font-family: var(--display);
+    font-size: 1.28rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .deck .title::after { content: "→"; color: var(--accent); font-weight: 400; }
+
+  .deck .desc { color: var(--ink-soft); font-size: 0.95rem; margin: 0.5rem 0 0; }
+
+  .deck .meta {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin: 0.75rem 0 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header>
+      <h1 class="who">胖胖</h1>
+      <p class="what">TVBS · Lab Team</p>
+    </header>
+
+    <h2>簡報</h2>
+
+    <ul>
+      <li>
+        <a class="deck" href="flutter-cicd/">
+          <p class="title">Flutter App 的建置與發版流程設計</p>
+          <p class="desc">tag-based 發版、版號與建置編號機制，以及 bundle id 與 Firebase 專案如何依環境自動長出不同的值。</p>
+          <p class="meta">2026-07 · 20 張</p>
+        </a>
+      </li>
+    </ul>
+
+    <footer>簡報內用方向鍵翻頁</footer>
+
+  </div>
+</body>
+</html>

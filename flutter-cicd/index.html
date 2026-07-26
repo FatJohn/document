@@ -1,0 +1,996 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flutter App 的建置與發版流程設計</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; }
+</style>
+</head>
+<body>
+<style>
+  :root {
+    --u: min(1vw, 1.7778vh);
+
+    --fs-h2: calc(var(--u) * 3.45);
+    --fs-lede: calc(var(--u) * 1.68);
+    --fs-list: calc(var(--u) * 1.58);
+    --fs-table: calc(var(--u) * 1.36);
+    --fs-th: calc(var(--u) * 1.18);
+    --fs-code: calc(var(--u) * 1.32);
+    --fs-eyebrow: calc(var(--u) * 1.24);
+    --fs-rowv: calc(var(--u) * 1.4);
+    --fs-rowk: calc(var(--u) * 1.14);
+    --fs-note: calc(var(--u) * 1.46);
+    --fs-h3: calc(var(--u) * 1.4);
+
+    --paper: #F6F7F9;
+    --card: #FFFFFF;
+    --ink: #131720;
+    --ink-soft: #39414F;
+    --muted: #5D6673;
+    --line: #DCE0E7;
+    --line-soft: #E9ECF1;
+    --accent: #4A57C8;
+    --accent-soft: #EEF0FC;
+    --dev: #0B8A82;
+    --prod: #A9550D;
+    --diagram: #FCFCFD;
+    --warn: #9A3412;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0E1219; --card: #161C26; --ink: #E9ECF2; --ink-soft: #BCC3D0;
+      --muted: #8A93A3; --line: #262E3B; --line-soft: #1D242F;
+      --accent: #8E98F7; --accent-soft: #1C2138;
+      --dev: #3ED0C4; --prod: #F0A63E; --diagram: #EDEFF4; --warn: #F0A63E;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0E1219; --card: #161C26; --ink: #E9ECF2; --ink-soft: #BCC3D0;
+    --muted: #8A93A3; --line: #262E3B; --line-soft: #1D242F;
+    --accent: #8E98F7; --accent-soft: #1C2138;
+    --dev: #3ED0C4; --prod: #F0A63E; --diagram: #EDEFF4; --warn: #F0A63E;
+  }
+
+  :root[data-theme="light"] {
+    --paper: #F6F7F9; --card: #FFFFFF; --ink: #131720; --ink-soft: #39414F;
+    --muted: #5D6673; --line: #DCE0E7; --line-soft: #E9ECF1;
+    --accent: #4A57C8; --accent-soft: #EEF0FC;
+    --dev: #0B8A82; --prod: #A9550D; --diagram: #FCFCFD; --warn: #9A3412;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper); color: var(--ink);
+    font-family: system-ui, -apple-system, "PingFang TC", "Noto Sans TC", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck {
+    --display: "Avenir Next", Futura, "Segoe UI Variable Display", "Helvetica Neue", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, "JetBrains Mono", Consolas, monospace;
+    display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+  }
+
+  .rail {
+    width: calc(var(--u) * 100); max-width: 100%;
+    display: flex; font-family: var(--mono);
+    font-size: calc(var(--u) * 1.2); letter-spacing: 0.09em; text-transform: uppercase;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .rail span {
+    flex: 1; padding: calc(var(--u) * 1) calc(var(--u) * 0.5);
+    text-align: center; color: var(--muted);
+    border-top: 2px solid transparent; cursor: pointer;
+    transition: color 0.25s, border-color 0.25s, background 0.25s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+
+  .rail span[data-on="1"] { color: var(--accent); border-top-color: var(--accent); background: var(--accent-soft); }
+
+  .stage {
+    position: relative; width: calc(var(--u) * 100); height: calc(var(--u) * 56.25);
+    max-width: 100%; overflow: hidden;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    padding: calc(var(--u) * 4) calc(var(--u) * 5) calc(var(--u) * 3.4);
+    display: flex; flex-direction: column; gap: calc(var(--u) * 1.5);
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .slide[data-on="1"] { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  @media (prefers-reduced-motion: reduce) { .slide, .rail span { transition: none; } }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: var(--fs-eyebrow);
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+    display: flex; align-items: center; gap: calc(var(--u) * 1.1);
+  }
+
+  .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  h2 {
+    font-family: var(--display); font-size: var(--fs-h2); line-height: 1.12;
+    letter-spacing: -0.018em; font-weight: 600; margin: 0;
+    text-wrap: balance; color: var(--ink);
+  }
+
+  .lede { font-size: var(--fs-lede); line-height: 1.5; color: var(--ink-soft); max-width: 70ch; margin: 0; }
+  .lede.wide { max-width: none; }
+
+  .body {
+    flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin;
+    display: flex; flex-direction: column; gap: calc(var(--u) * 1.4);
+  }
+
+  p { margin: 0; }
+  code, .mono { font-family: var(--mono); }
+
+  code {
+    font-size: 0.93em; background: var(--line-soft);
+    padding: 0.08em 0.32em; border-radius: 3px; color: var(--ink);
+  }
+
+  strong { font-weight: 650; color: var(--ink); }
+  .dev-t { color: var(--dev); }
+  .prod-t { color: var(--prod); }
+  .acc-t { color: var(--accent); }
+
+  .cover { justify-content: center; gap: calc(var(--u) * 2.2); }
+
+  .cover h1 {
+    font-family: var(--display); font-size: calc(var(--u) * 6.6); line-height: 1.04;
+    letter-spacing: -0.03em; font-weight: 600; margin: 0; text-wrap: balance;
+  }
+
+  .cover .sub { font-size: calc(var(--u) * 2); color: var(--ink-soft); max-width: 60ch; line-height: 1.5; }
+
+  .byline {
+    align-self: start;
+    display: flex; flex-direction: column; gap: calc(var(--u) * 0.35);
+    padding-top: calc(var(--u) * 1);
+    border-top: 1px solid var(--line);
+    margin-top: calc(var(--u) * 0.6);
+  }
+
+  .byline .who {
+    font-family: var(--display); font-size: calc(var(--u) * 2.1);
+    font-weight: 600; letter-spacing: -0.01em; color: var(--ink);
+  }
+
+  .byline .what {
+    font-family: var(--mono); font-size: calc(var(--u) * 1.26);
+    letter-spacing: 0.06em; color: var(--muted);
+  }
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 1.8); min-height: 0; }
+
+  .pane {
+    background: var(--card); border: 1px solid var(--line);
+    border-top-width: calc(var(--u) * 0.34); border-radius: calc(var(--u) * 0.45);
+    padding: calc(var(--u) * 1.6) calc(var(--u) * 1.7);
+    display: flex; flex-direction: column; gap: calc(var(--u) * 0.95); min-width: 0;
+  }
+
+  .pane.dev { border-top-color: var(--dev); }
+  .pane.prod { border-top-color: var(--prod); }
+  .pane.neutral { border-top-color: var(--accent); }
+
+  .pane h3 {
+    font-family: var(--mono); font-size: var(--fs-h3); letter-spacing: 0.08em;
+    text-transform: uppercase; margin: 0; font-weight: 600;
+  }
+
+  .pane.dev h3 { color: var(--dev); }
+  .pane.prod h3 { color: var(--prod); }
+  .pane.neutral h3 { color: var(--accent); }
+
+  .pane p { font-size: var(--fs-lede); line-height: 1.45; color: var(--ink-soft); }
+
+  .pane .row { display: flex; flex-direction: column; gap: calc(var(--u) * 0.2); }
+  .pane .row .k { font-family: var(--mono); font-size: var(--fs-rowk); color: var(--muted); letter-spacing: 0.05em; }
+  .pane .row .v { font-family: var(--mono); font-size: var(--fs-rowv); color: var(--ink); word-break: break-all; line-height: 1.35; }
+
+  ul.clean {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: calc(var(--u) * 0.9);
+    font-size: var(--fs-list); line-height: 1.45; color: var(--ink-soft);
+  }
+
+  /* absolute marker keeps each item a single normal text flow */
+  ul.clean > li { position: relative; padding-left: calc(var(--u) * 1.9); }
+
+  ul.clean > li::before {
+    content: ""; position: absolute; left: 0; top: calc(var(--u) * 0.62);
+    width: calc(var(--u) * 0.66); height: calc(var(--u) * 0.66);
+    background: var(--accent); border-radius: 50%;
+  }
+
+  ol.steps {
+    list-style: none; counter-reset: s; margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: calc(var(--u) * 1);
+    font-size: var(--fs-list); line-height: 1.45; color: var(--ink-soft);
+  }
+
+  ol.steps > li {
+    counter-increment: s; position: relative;
+    padding-left: calc(var(--u) * 3.3); min-height: calc(var(--u) * 2.2);
+  }
+
+  ol.steps > li::before {
+    content: counter(s); position: absolute; left: 0; top: calc(var(--u) * -0.05);
+    font-family: var(--mono); font-size: calc(var(--u) * 1.22); color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 50%;
+    width: calc(var(--u) * 2.2); height: calc(var(--u) * 2.2);
+    display: grid; place-items: center; font-weight: 600;
+  }
+
+  .tw { overflow: auto; min-height: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: var(--fs-table); font-variant-numeric: tabular-nums; }
+
+  th, td {
+    text-align: left; padding: calc(var(--u) * 0.82) calc(var(--u) * 0.95);
+    border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.38;
+  }
+
+  th {
+    font-family: var(--mono); font-size: var(--fs-th); letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600;
+    border-bottom-color: var(--ink-soft); white-space: nowrap;
+  }
+
+  td.m { font-family: var(--mono); }
+  td.nw { white-space: nowrap; }
+  th.dev-h { color: var(--dev); }
+  th.prod-h { color: var(--prod); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .code {
+    font-family: var(--mono); font-size: var(--fs-code); line-height: 1.5;
+    background: var(--card); border: 1px solid var(--line);
+    border-left: calc(var(--u) * 0.3) solid var(--accent);
+    border-radius: calc(var(--u) * 0.35);
+    padding: calc(var(--u) * 1.1) calc(var(--u) * 1.4);
+    overflow-x: auto; white-space: pre; color: var(--ink); margin: 0;
+  }
+
+  .code.dev-b { border-left-color: var(--dev); }
+  .code.prod-b { border-left-color: var(--prod); }
+  .code .c { color: var(--muted); }
+  .code .d { color: var(--dev); font-weight: 600; }
+  .code .p { color: var(--prod); font-weight: 600; }
+  .code .a { color: var(--accent); font-weight: 600; }
+
+  .idshow { display: flex; flex-direction: column; gap: calc(var(--u) * 2.2); align-items: center; padding: calc(var(--u) * 1) 0; }
+
+  .idline { font-family: var(--mono); font-size: calc(var(--u) * 2.9); display: flex; align-items: flex-end; white-space: nowrap; }
+  .idline.small { font-size: calc(var(--u) * 2.4); }
+
+  .idbase { color: var(--ink); }
+  .idsuf { position: relative; padding-bottom: calc(var(--u) * 1.35); }
+
+  .idsuf::after {
+    content: attr(data-note); position: absolute; left: 0; bottom: 0;
+    font-size: calc(var(--u) * 1.14); letter-spacing: 0.07em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+
+  .idsuf.dev { color: var(--dev); border-bottom: 2px solid var(--dev); }
+  .idsuf.dev::after { color: var(--dev); }
+  .idsuf.prod { color: var(--prod); border-bottom: 2px dashed var(--prod); }
+  .idsuf.prod::after { color: var(--prod); }
+
+  .note {
+    border-left: calc(var(--u) * 0.3) solid var(--warn); background: var(--card);
+    padding: calc(var(--u) * 1.1) calc(var(--u) * 1.4);
+    font-size: var(--fs-note); line-height: 1.45; color: var(--ink-soft);
+    border-radius: calc(var(--u) * 0.3);
+  }
+
+  .note b {
+    color: var(--warn); font-family: var(--mono); font-size: 0.88em;
+    letter-spacing: 0.06em; text-transform: uppercase; display: block;
+    margin-bottom: calc(var(--u) * 0.35);
+  }
+
+  /* ---------- mermaid container: follows the theme ---------- */
+
+  .diagram {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: calc(var(--u) * 0.45); padding: calc(var(--u) * 1.4);
+    display: grid; place-items: center; min-height: 0; flex: 1; overflow: auto;
+  }
+
+  .diagram pre.mermaid {
+    margin: 0; padding: 0; background: none; border: none;
+    width: 100%; text-align: center;
+  }
+
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .hud {
+    width: calc(var(--u) * 100); max-width: 100%;
+    display: flex; align-items: center; gap: calc(var(--u) * 1.6);
+    padding: calc(var(--u) * 0.95) calc(var(--u) * 0.4);
+    font-family: var(--mono); font-size: calc(var(--u) * 1.22);
+    color: var(--muted); border-top: 1px solid var(--line);
+  }
+
+  .track { flex: 1; height: 2px; background: var(--line); position: relative; }
+  .track i { position: absolute; inset: 0 auto 0 0; background: var(--accent); transition: width 0.3s; }
+  .hud .n { font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
+
+  .hud button {
+    font: inherit; font-family: var(--mono); color: var(--muted);
+    background: none; border: 1px solid var(--line); border-radius: 3px;
+    padding: calc(var(--u) * 0.3) calc(var(--u) * 1); cursor: pointer;
+  }
+
+  .hud button:hover { color: var(--accent); border-color: var(--accent); }
+  .hud button:focus-visible, .rail span:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (max-width: 760px) {
+    :root { --u: 2.9vw; }
+    .stage { height: auto; min-height: calc(var(--u) * 90); }
+    .slide { position: relative; inset: auto; }
+    .compare { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="deck">
+
+  <nav class="rail" id="rail" aria-label="章節"></nav>
+
+  <div class="stage" id="stage">
+
+    <!-- 1 -->
+    <section class="slide cover" data-sec="Overview">
+      <div class="eyebrow">Flutter · GitHub Actions · 自架 runner</div>
+      <h1>Flutter App 的<br>建置與發版流程設計</h1>
+      <p class="sub">版號怎麼決定、發版要點什麼，以及 bundle id 與 Firebase 專案如何依環境自動長出不同的值。</p>
+      <div class="byline">
+        <span class="who">胖胖</span>
+        <span class="what">TVBS · Lab Team</span>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="slide" data-sec="Overview">
+      <div class="eyebrow">Overview</div>
+      <h2>兩條部署線</h2>
+      <p class="lede">整套流程的每個分歧，最後都能還原成一個問題：這是 staging 還是 main。分支決定環境，環境決定 bundle id、Firebase 專案與後端網域。兩條線各自獨立走完建置到派發。</p>
+      <div class="body">
+        <div class="compare">
+          <div class="pane dev">
+            <h3>staging → development</h3>
+            <div class="row"><span class="k">tag</span><span class="v">dev1.4.2</span></div>
+            <div class="row"><span class="k">bundle id</span><span class="v">com.example.myapp<span class="dev-t">.dev</span></span></div>
+            <div class="row"><span class="k">firebase</span><span class="v">staging 專案</span></div>
+            <div class="row"><span class="k">產物</span><span class="v">APK + IPA</span></div>
+            <div class="row"><span class="k">派發</span><span class="v">App Distribution / TestFlight</span></div>
+          </div>
+          <div class="pane prod">
+            <h3>main → production</h3>
+            <div class="row"><span class="k">tag</span><span class="v">v1.4.2</span></div>
+            <div class="row"><span class="k">bundle id</span><span class="v">com.example.myapp</span></div>
+            <div class="row"><span class="k">firebase</span><span class="v">prod 專案</span></div>
+            <div class="row"><span class="k">產物</span><span class="v">APK + AAB + IPA</span></div>
+            <div class="row"><span class="k">派發</span><span class="v">App Distribution / TestFlight</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="slide" data-sec="發版">
+      <div class="eyebrow">發版 / 主線</div>
+      <h2>發版只要點幾次滑鼠</h2>
+      <p class="lede">全部在 GitHub Actions 介面上跑，不需要在本機下 <code>git tag</code>。第三步是自動發生的。</p>
+      <div class="body">
+        <div class="diagram">
+<pre class="mermaid">
+graph LR
+  A["staging<br/>開發完成"] --> B["1 · 開<br/>staging → main PR"]
+  B --> C["review<br/>&amp; merge"]
+  C --> D["2 · 推<br/>production tag"]
+  D --> E["CI 建置並派發"]
+  D --> F["3 · 自動<br/>bump staging"]
+  classDef manual stroke-width:2px
+  class B,D manual
+</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="slide" data-sec="發版">
+      <div class="eyebrow">發版 / 派發閘門</div>
+      <h2>只有 tag 會派發，而且 tag 與分支必須配對</h2>
+      <p class="lede">推分支、開 PR、手動觸發都只跑測試與建置。一個專職的 job 是唯一的開關，它同時驗兩件事。</p>
+      <div class="body">
+        <div class="compare">
+          <div class="pane neutral">
+            <h3>條件一 / tag 格式對</h3>
+            <p><span class="dev-t">dev</span> 線<br><code>^dev[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$</code></p>
+            <p><span class="prod-t">prod</span> 線<br><code>^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$</code></p>
+          </div>
+          <div class="pane neutral">
+            <h3>條件二 / tag 真的在那條線上</h3>
+            <p>用 <code>git merge-base --is-ancestor</code> 確認 tag 指向的 commit 是 <code>origin/staging</code>（或 <code>origin/main</code>）的祖先。</p>
+            <p>在 main 推 <code>dev</code> tag、或在 staging 推 <code>v</code> tag，會建置成功但<strong>跳過派發</strong>。</p>
+          </div>
+        </div>
+        <pre class="code"><span class="c"># 兩個條件都成立才輸出 should_deploy=true，兩個 deploy job 都掛這個條件</span>
+if: needs.check-deployment-eligibility.outputs.should_deploy == 'true'</pre>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="slide" data-sec="發版">
+      <div class="eyebrow">發版 / 流程</div>
+      <h2>一次建置跑過的 job</h2>
+      <div class="body">
+        <div class="diagram">
+<pre class="mermaid">
+graph TB
+  T["test"] --> B["build-android · build-ios<br/>平行建置"]
+  V["resolve-version"] --> B
+  E["check-deployment-eligibility"] --> N["generate-build-number"]
+  E --> B
+  N --> B
+  B --> D["deploy-firebase · deploy-testflight<br/>只有 tag 會走到這層"]
+  classDef gate stroke-dasharray:4 3,stroke-width:2px
+  class E gate
+</pre>
+        </div>
+        <ul class="clean">
+          <li>測試、讀版號、判斷派發資格三個平行起跑</li>
+          <li>產生 build number 要等閘門結果，才知道這次算不算正式建置</li>
+          <li>Android 與 iOS 平行建置，各自派發到 App Distribution 與 TestFlight</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="slide" data-sec="發版">
+      <div class="eyebrow">發版 / 結構</div>
+      <h2>重複的步驟都抽成 composite action</h2>
+      <p class="lede">兩條 CI 線共用同一組 action，環境差異只用 inputs 表達，所以流程只有一份。</p>
+      <div class="body">
+        <div class="tw">
+          <table>
+            <thead>
+              <tr><th>composite action</th><th>做什麼</th><th>關鍵 inputs</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="m nw">test</td><td>格式檢查、靜態分析、單元測試</td><td class="m">—</td></tr>
+              <tr><td class="m nw">build-number</td><td>產生建置編號</td><td class="m">environment, persist</td></tr>
+              <tr><td class="m nw">build-android</td><td>建 APK，需要時建 AAB</td><td class="m">environment, build_aab</td></tr>
+              <tr><td class="m nw">build-ios</td><td>簽章並建 IPA</td><td class="m">environment, 憑證</td></tr>
+              <tr><td class="m nw">deploy-firebase</td><td>APK 上 App Distribution</td><td class="m">environment, artifact_name</td></tr>
+              <tr><td class="m nw">deploy-testflight</td><td>IPA 上 TestFlight</td><td class="m">environment, artifact_name</td></tr>
+              <tr><td class="m nw">setup-submodules</td><td>用 deploy key 拉私有 submodule</td><td class="m">deploy-key</td></tr>
+              <tr><td class="m nw">cleanup-ssh</td><td>收尾清掉 SSH key</td><td class="m">—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="lede wide">action 之間也能疊：三個 action 開頭都先呼叫 <code>setup-submodules</code>，結尾呼叫 <code>cleanup-ssh</code>。</p>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="slide" data-sec="發版">
+      <div class="eyebrow">發版 / token</div>
+      <h2>為什麼推 tag 需要 App token</h2>
+      <div class="body">
+        <div class="tw">
+          <table>
+            <tbody>
+              <tr>
+                <td class="m acc-t nw">目的</td>
+                <td>用內建 <code>GITHUB_TOKEN</code> 推的 ref <strong>不會觸發任何 workflow</strong>，這是 GitHub 的防遞迴規則。tag 推上去卻叫不動 CI，發版就斷在那裡。</td>
+              </tr>
+              <tr>
+                <td class="m acc-t nw">做法</td>
+                <td>用 GitHub App 的 Client ID 與 private key 簽出 installation token，有效一小時、job 結束自動撤銷，再用它 checkout 與 push tag。</td>
+              </tr>
+              <tr>
+                <td class="m acc-t nw">不用個人 PAT</td>
+                <td>PAT 綁人、會過期、人離職就壞，而且在 PR 上看起來像那個人做的。</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <pre class="code">- uses: actions/create-github-app-token@v3
+  id: app-token
+  with:
+    client-id: ${{ secrets.RELEASE_APP_ID }}
+    private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+- uses: actions/checkout@v6
+  with:
+    token: ${{ steps.app-token.outputs.token }}   <span class="c"># 用它推的 tag 才會觸發 CI</span></pre>
+        <p class="lede wide">對照：開 PR 的那幾支 workflow 用 <code>GITHUB_TOKEN</code> 就夠。副作用剛好合理：自動 PR 不會自己跑 CI，等人 merge 才跑。</p>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="slide" data-sec="版本">
+      <div class="eyebrow">版本 / 全貌</div>
+      <h2>一次建置的身分由三個數字組成</h2>
+      <div class="body">
+        <div class="tw">
+          <table>
+            <thead>
+              <tr><th>數字</th><th>從哪來</th><th>誰決定</th><th>例</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="m acc-t nw">version name</td>
+                <td class="m">pubspec.yaml 的 <code>version:</code></td>
+                <td>人，或 bump workflow 自動 PATCH +1</td>
+                <td class="m nw">1.4.2</td>
+              </tr>
+              <tr>
+                <td class="m acc-t nw">tag</td>
+                <td class="m">push tag workflow 依版號推算</td>
+                <td>workflow 自動命名</td>
+                <td class="m nw">v1.4.2</td>
+              </tr>
+              <tr>
+                <td class="m acc-t nw">build number</td>
+                <td class="m">獨立分支上的月計數器</td>
+                <td>CI 自動遞增</td>
+                <td class="m nw">260700015</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="lede wide">CI 不對版號做任何轉換：兩條線讀<strong>同一個</strong> <code>pubspec.yaml</code> 欄位，差別只在 tag 前綴。產物名稱把三者組起來，尾綴是 <code>github.ref_name</code>（推 tag 時就是 tag 名）。</p>
+        <pre class="code">myapp-<span class="a">1.4.2</span>+<span class="a">260700015</span>-<span class="a">v1.4.2</span>.apk</pre>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="slide" data-sec="版本">
+      <div class="eyebrow">版本 / tag 命名</div>
+      <h2>同版本再發一次，後綴從 -2 開始</h2>
+      <p class="lede">workflow 會先列出遠端所有符合的 tag，算出這是第幾次發版，再決定 tag 名。後綴數字對齊「第 N 次」的口語，所以沒有 -1。</p>
+      <div class="body">
+        <pre class="code"><span class="c"># 版號停在 1.4.2，重複跑同一支 workflow</span>
+第 1 次   <span class="a">v1.4.2</span>      <span class="c">← 純版號，base tag</span>
+第 2 次   <span class="a">v1.4.2-2</span>
+第 3 次   <span class="a">v1.4.2-3</span>
+
+<span class="c"># 判斷方式：列出遠端 tag，找出最大的 -N</span>
+git ls-remote --tags origin "refs/tags/$BASE_TAG*"</pre>
+        <ul class="clean">
+          <li>版號不變，但 build number 會遞增，所以 TestFlight 與 App Distribution 都視為新的建置</li>
+          <li><span class="dev-t">dev 線</span>直接重跑即可，沒有額外關卡</li>
+          <li><span class="prod-t">prod 線</span>base tag 已存在時會直接失敗，除非明確勾選確認重發</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="slide" data-sec="版本">
+      <div class="eyebrow">版本 / build number</div>
+      <h2>年月加當月流水號，九位數</h2>
+      <div class="body">
+        <div class="idshow">
+          <div class="idline">
+            <span class="idsuf dev" data-note="年">26</span><span class="idsuf prod" data-note="月">07</span><span class="idbase">00015</span>
+          </div>
+          <p class="lede" style="text-align:center">2026 年 7 月的第 15 次正式建置</p>
+        </div>
+        <div class="compare">
+          <div class="pane neutral">
+            <h3>為什麼這樣切</h3>
+            <p>年月在前，保證跨月與跨年都遞增（<code>2701</code>… &gt; <code>2612</code>…），商店只接受遞增的 build number。</p>
+            <p>每月從 1 重新計數，人眼能直接讀出這個建置是哪個月出的。</p>
+          </div>
+          <div class="pane neutral">
+            <h3>為什麼是九位</h3>
+            <p>Android 的 <code>versionCode</code> 上限是 <code>2100000000</code>。九位數最大 <code>991299999</code>，永遠不會撞到天花板。</p>
+            <p>也就是這個格式可以一路用到 2099 年都不需要換算法。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 11 -->
+    <section class="slide" data-sec="版本">
+      <div class="eyebrow">版本 / 兩種建置</div>
+      <h2>發版建置與 PR 建置的號碼機制不同</h2>
+      <p class="lede">產生 build number 的 action 收一個 <code>persist</code> 參數，值直接來自派發閘門的結果，兩條路徑完全分開。</p>
+      <div class="body">
+        <div class="compare">
+          <div class="pane prod">
+            <h3>發版建置 / persist = true</h3>
+            <div class="row"><span class="k">觸發</span><span class="v">推 tag</span></div>
+            <div class="row"><span class="k">來源</span><span class="v">計數器 +1</span></div>
+            <div class="row"><span class="k">寫回</span><span class="v">會，更新計數器分支</span></div>
+            <div class="row"><span class="k">號碼</span><span class="v">YYMM + 補零計數<br>260700015</span></div>
+          </div>
+          <div class="pane dev">
+            <h3>PR / 分支 / 手動 / persist = false</h3>
+            <div class="row"><span class="k">觸發</span><span class="v">push 分支、開 PR、手動觸發</span></div>
+            <div class="row"><span class="k">來源</span><span class="v">GITHUB_RUN_NUMBER 取五位</span></div>
+            <div class="row"><span class="k">寫回</span><span class="v">不會，完全不碰計數器</span></div>
+            <div class="row"><span class="k">號碼</span><span class="v">YYMM + run number<br>只為讓建置跑得完</span></div>
+          </div>
+        </div>
+        <p class="lede wide">所以計數器的數字等於<strong>真正發出去的次數</strong>，PR 驗證跑幾百次都不會影響它。</p>
+      </div>
+    </section>
+
+    <!-- 12 -->
+    <section class="slide" data-sec="版本">
+      <div class="eyebrow">版本 / 計數器</div>
+      <h2>計數器存在一個孤兒分支上</h2>
+      <div class="body">
+        <pre class="code"><span class="c"># 這個分支與主線程式碼完全隔離，只放一個檔案</span>
+build-history.json
+{ "production": { "2026-07": 15 }, "development": { "2026-07": 8 } }
+
+<span class="c"># 每次寫入都是 amend + force push，分支永遠只有一個 commit</span>
+git commit <span class="a">--amend</span> -m "Build counter: production 2026-07 = 15"
+git push <span class="a">--force</span> origin build-metadata</pre>
+        <div class="note">
+          <b>為什麼需要排隊</b>
+          因為用 force push，兩個 job 同時寫會互相蓋掉。呼叫端的 job 掛 concurrency group 且 <code>cancel-in-progress: false</code>，讓它排隊而不是取消。
+        </div>
+      </div>
+    </section>
+
+    <!-- 13 -->
+    <section class="slide" data-sec="環境">
+      <div class="eyebrow">環境 / 入口</div>
+      <h2>所有環境差異都從一個 JSON 出發</h2>
+      <p class="lede">每個環境一份 JSON，是唯一的來源。CI 只做一件事：把對應那份餵給 Flutter。</p>
+      <div class="body">
+        <pre class="code"><span class="c"># 建置前先注入 git hash 等資訊，產出最終的 dart-define.json</span>
+GIT_HASH=$(git rev-parse --short HEAD)
+jq '. + {GIT_HASH: $git_hash}' "$ORIGINAL_CONFIG" &gt; build_config/dart-define.json
+
+flutter build apk --release <span class="a">--dart-define-from-file=build_config/dart-define.json</span> \
+  --build-name=1.4.2 --build-number=260700015</pre>
+        <ul class="clean">
+          <li>Dart 端讀得到這些值，<strong>Android 的 Gradle 也讀得到</strong>，所以 bundle id 與資源能跟著切</li>
+          <li>iOS 讀不到，需要另一支 script 轉成 xcconfig</li>
+          <li>最終產出的 <code>dart-define.json</code> 在 <code>.gitignore</code> 裡，它是產物不是設定</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 14 -->
+    <section class="slide" data-sec="環境">
+      <div class="eyebrow">環境 / bundle id</div>
+      <h2>一個 base，一個後綴</h2>
+      <p class="lede">兩個平台的 bundle id 都不是各寫死一份，而是同一個 base 加上由環境決定的後綴。這也是兩個 app 能同時裝在一台機器上的原因。</p>
+      <div class="body">
+        <div class="idshow">
+          <div class="idline small">
+            <span class="idbase">com.example.myapp</span><span class="idsuf dev" data-note="development">.dev</span>
+          </div>
+          <div class="idline small">
+            <span class="idbase">com.example.myapp</span><span class="idsuf prod" data-note="production：空字串">&nbsp;&nbsp;&nbsp;</span>
+          </div>
+        </div>
+        <p class="lede">後綴在兩個平台叫同一個名字 <code>APP_CONFIG_SUFFIX</code>，只是抵達的路徑不同。</p>
+      </div>
+    </section>
+
+    <!-- 15 -->
+    <section class="slide" data-sec="環境">
+      <div class="eyebrow">環境 / 後綴怎麼到位</div>
+      <h2>Gradle 直接讀，Xcode 要人翻譯</h2>
+      <div class="body">
+        <div class="compare">
+          <div class="pane dev">
+            <h3>Android / Gradle 讀 dart-defines</h3>
+            <pre class="code dev-b" style="font-size:calc(var(--u) * 1.16)"><span class="c">// build.gradle.kts：解 base64 找 ENV</span>
+dartDefines.split(",").forEach { entry -&gt;
+  val decoded = String(
+    Base64.getDecoder().decode(entry))
+  <span class="c">// ENV=development → 設定整組變數</span>
+}
+
+defaultConfig {
+  applicationId = "com.example.myapp"
+  <span class="a">applicationIdSuffix</span> =
+    dartEnvironmentVariables["APP_CONFIG_SUFFIX"]
+}</pre>
+            <p>同一組變數也決定 app 名稱與通知頻道文字。</p>
+          </div>
+          <div class="pane prod">
+            <h3>iOS / script 產生 xcconfig</h3>
+            <pre class="code prod-b" style="font-size:calc(var(--u) * 1.16)"><span class="c"># script 寫出 xcconfig</span>
+cat &gt; ios/Flutter/AppConfig.xcconfig &lt;&lt;EOF
+APP_CONFIG_SUFFIX=<span class="p">.dev</span>
+APP_CONFIG_NAME=MyApp [DEV]
+EOF
+
+<span class="c"># pbxproj 裡寫的是變數，不是值</span>
+PRODUCT_BUNDLE_IDENTIFIER =
+  "com.example.myapp<span class="a">$(APP_CONFIG_SUFFIX)</span>"</pre>
+            <p>script 反過來從 pbxproj 抓 base id，只有一個真實來源。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16 -->
+    <section class="slide" data-sec="環境">
+      <div class="eyebrow">環境 / 檔案就位</div>
+      <h2>有些東西沒有變數可用，只能把檔案複製到位</h2>
+      <p class="lede wide">變數能解決的（bundle id、app 名稱、icon 名稱）就用變數。剩下的只能在建置前把對應檔案複製成固定檔名，讓下游工具讀到。</p>
+      <div class="body">
+        <div class="tw">
+          <table>
+            <thead>
+              <tr><th>要換的東西</th><th>誰做</th><th>怎麼做</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Android Firebase 設定</td>
+                <td class="m nw">Gradle task</td>
+                <td class="m">把 config/{dev,prod}/google-services.json 複製到 app 根目錄，掛在 google-services 處理之前</td>
+              </tr>
+              <tr>
+                <td>iOS Firebase 設定</td>
+                <td class="m nw">shell script</td>
+                <td class="m">把 config/{Dev,Prod}/GoogleService-Info.plist 複製到 Runner/</td>
+              </tr>
+              <tr>
+                <td>iOS Launch image</td>
+                <td class="m nw">Xcode build phase</td>
+                <td class="m">把 LaunchImage-{Dev,Prod}.imageset 複製成通用的 LaunchImage.imageset</td>
+              </tr>
+              <tr>
+                <td>Android App icon</td>
+                <td class="m nw">不用複製</td>
+                <td class="m">Gradle sourceSets 直接把 src/{dev,prod}/res 疊進 res.srcDirs</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">
+          <b>Launch image 為什麼要多這一步</b>
+          <code>LaunchScreen.storyboard</code> 無法引用 xcconfig 變數，只能讓它固定引用 <code>LaunchImage</code>，再由 build phase 把對的圖搬進那個名字。
+        </div>
+      </div>
+    </section>
+
+    <!-- 17 -->
+    <section class="slide" data-sec="環境">
+      <div class="eyebrow">環境 / Firebase</div>
+      <h2>兩套獨立專案，靠 bundle id 對上</h2>
+      <p class="lede wide">兩個環境接的是兩個完全獨立的 Firebase 專案，資料、Crashlytics 與推播設定都分開。設定檔裡寫著「我是給哪個 bundle id 用的」，對不上就不給用。</p>
+      <div class="body">
+        <pre class="code">設定檔裡寫著  "package_name": "com.example.myapp<span class="d">.dev</span>"
+建置算出來的  applicationId + Suffix = "com.example.myapp<span class="d">.dev</span>"
+                                       <span class="a">↑ 必須一模一樣，否則 Android 直接建置失敗</span></pre>
+        <ul class="clean">
+          <li>要再加環境，架構撐得住：所有環境差異都收斂成「一個 <code>ENV</code> 值 ＋ 一組按環境命名的目錄」，照樣式新增就好</li>
+          <li>但有兩處分支要各補一個 case：Gradle 的 <code>when (ENV)</code> 與 iOS script 的 <code>case</code>，還要先去 Firebase Console 註冊新 bundle id 才拿得到設定檔</li>
+          <li>iOS 的 dSYM 上傳也吃這份設定檔，環境錯了符號會傳到另一個專案，線上當機就查不到來源</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 18 -->
+    <section class="slide" data-sec="進階">
+      <div class="eyebrow">進階 / 分流</div>
+      <h2>推了 tag 之後，staging 會發生什麼</h2>
+      <p class="lede">兩支自動 workflow 監聽同一個 tag pattern，用兩個獨立問題把情境切成四種，彼此互斥。</p>
+      <div class="body">
+        <div class="tw">
+          <table>
+            <thead>
+              <tr><th>情境</th><th>tag</th><th>main 有新 commit</th><th>結果</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="nw">A 真 hotfix</td><td class="m nw">v1.4.3</td><td class="m nw">有</td><td>把 main 併回 staging，並 bump 版號</td></tr>
+              <tr><td class="nw">B 重發加修正</td><td class="m nw">v1.4.2-2</td><td class="m nw">有</td><td>只併回，不 bump</td></tr>
+              <tr><td class="nw">C 純重打包</td><td class="m nw">v1.4.2-2</td><td class="m nw">沒有</td><td>兩支都跳過</td></tr>
+              <tr><td class="nw">D 正常發版</td><td class="m nw">v1.4.3</td><td class="m nw">沒有</td><td>只 bump staging 版號</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <pre class="code"><span class="c"># 判斷用的兩個訊號</span>
+git rev-list --count origin/staging..origin/main --no-merges   <span class="c"># 要不要併回</span>
+[[ "$TAG" =~ -[0-9]+$ ]]                                       <span class="c"># 要不要 bump</span></pre>
+        <p class="lede wide">把「要不要併回」與「要不要 bump」拆成兩個獨立問題，是這段設計最關鍵的一步。四種情境就從兩個布林值自然長出來，不需要寫四條規則。</p>
+        <div class="note">
+          <b>這個判定有個前提</b>
+          <code>rev-list --count</code> 比對的是 commit SHA、不是內容，而 rebase 與 squash merge 都會重寫 SHA，於是正常發版會被誤判成有 divergence。要嘛把 staging → main 限制成 merge commit，要嘛改用 <code>--cherry-pick --right-only</code> 以 patch-id 比對，後者對兩種 merge 模式都免疫。
+        </div>
+      </div>
+    </section>
+
+    <!-- 19 -->
+    <section class="slide" data-sec="進階">
+      <div class="eyebrow">進階 / iOS 簽章</div>
+      <h2>iOS 簽章走臨時 keychain</h2>
+      <p class="lede">自架 runner 的 keychain 是長期狀態，一旦被污染，之後所有 iOS 建置都會出問題，而且很難查。所以整個簽章流程都在臨時 keychain 裡完成。</p>
+      <div class="body">
+        <pre class="code">keychain <span class="a">initialize</span>                       <span class="c"># 建立臨時 keychain 並設為預設</span>
+
+app-store-connect fetch-signing-files "$BUNDLE_ID" \   <span class="c"># 用算好的 bundle id 抓</span>
+  --platform IOS --type IOS_APP_STORE \
+  --certificate-key=@file:$CERT_KEY_PATH \
+  --strict-match-identifier --delete-stale-profiles --create
+
+keychain add-certificates --certificate "$RUNNER_TEMP/certificates/*.p12"
+xcode-project use-profiles --export-options-plist=$RUNNER_TEMP/export_options.plist
+
+flutter build ipa --release --export-options-plist=...
+
+keychain <span class="a">use-login</span>                        <span class="c"># if: always() —— 失敗也要還原</span></pre>
+        <ul class="clean">
+          <li>還原那步掛 <code>if: always()</code>，所以建置失敗也不會把預設 keychain 留在臨時的那個</li>
+          <li>憑證與 private key 都寫在 <code>$RUNNER_TEMP</code>，收尾一併刪掉</li>
+          <li>這裡用的是 Codemagic CLI tools，它把 keychain 與憑證的處理包成幾個指令</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 20 -->
+    <section class="slide" data-sec="進階">
+      <div class="eyebrow">收尾</div>
+      <h2>可以帶走的幾個設計原則</h2>
+      <div class="body">
+        <ol class="steps">
+          <li><strong>讓分支決定一切。</strong>一條線一組環境、一個 tag 前綴、一個 Firebase 專案，不要有第三種組合。</li>
+          <li><strong>把「建置」與「派發」分開。</strong>推分支只驗證，只有 tag 會真的送出去，也只有 tag 會消耗建置編號。</li>
+          <li><strong>版號只留一個來源。</strong>其他數字（tag 名、建置編號）都從它推導，不要讓人有機會填錯第二個地方。</li>
+          <li><strong>環境差異收斂成一個入口。</strong>能用變數的用變數，不能的就在建置前把檔案複製到位，並把產物都放進 gitignore。</li>
+          <li><strong>把複雜情境拆成獨立的布林值。</strong>四種發版情境是兩個問題的組合，不是四條規則。</li>
+          <li><strong>不要污染 runner 的長期狀態。</strong>臨時 keychain、臨時 SSH key，並且在失敗路徑上也要還原。</li>
+        </ol>
+      </div>
+    </section>
+
+  </div>
+
+  <footer class="hud">
+    <button id="prev" type="button" aria-label="上一頁">←</button>
+    <button id="next" type="button" aria-label="下一頁">→</button>
+    <span class="n" id="counter">1 / 20</span>
+    <div class="track" aria-hidden="true"><i id="bar"></i></div>
+    <span id="secname">Overview</span>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var rail = document.getElementById('rail');
+    var counter = document.getElementById('counter');
+    var bar = document.getElementById('bar');
+    var secname = document.getElementById('secname');
+    var idx = 0;
+
+    var sections = [];
+    slides.forEach(function (s) {
+      var name = s.getAttribute('data-sec');
+      if (sections.indexOf(name) === -1) sections.push(name);
+    });
+
+    sections.forEach(function (name) {
+      var el = document.createElement('span');
+      el.textContent = name;
+      el.setAttribute('data-name', name);
+      el.setAttribute('tabindex', '0');
+      el.setAttribute('role', 'button');
+      el.addEventListener('click', function () { jumpToSection(name); });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jumpToSection(name); }
+      });
+      rail.appendChild(el);
+    });
+
+    function jumpToSection(name) {
+      for (var i = 0; i < slides.length; i++) {
+        if (slides[i].getAttribute('data-sec') === name) { go(i); return; }
+      }
+    }
+
+    function go(n) {
+      idx = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach(function (s, i) { s.setAttribute('data-on', i === idx ? '1' : '0'); });
+      var cur = slides[idx].getAttribute('data-sec');
+      Array.prototype.forEach.call(rail.children, function (c) {
+        c.setAttribute('data-on', c.getAttribute('data-name') === cur ? '1' : '0');
+      });
+      counter.textContent = (idx + 1) + ' / ' + slides.length;
+      bar.style.width = ((idx + 1) / slides.length * 100) + '%';
+      secname.textContent = cur;
+      if (history.replaceState) history.replaceState(null, '', '#' + (idx + 1));
+      var body = slides[idx].querySelector('.body');
+      if (body) body.scrollTop = 0;
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(idx + 1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(idx - 1); }
+      else if (e.key === 'Home') { e.preventDefault(); go(0); }
+      else if (e.key === 'End') { e.preventDefault(); go(slides.length - 1); }
+    });
+
+    document.getElementById('next').addEventListener('click', function () { go(idx + 1); });
+    document.getElementById('prev').addEventListener('click', function () { go(idx - 1); });
+
+    var x0 = null;
+    var stage = document.getElementById('stage');
+    stage.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener('touchend', function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) > 45) go(idx + (dx < 0 ? 1 : -1));
+      x0 = null;
+    }, { passive: true });
+
+    var start = parseInt((location.hash || '').replace('#', ''), 10);
+    go(isNaN(start) ? 0 : start - 1);
+  })();
+</script>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+  const FONT = 'system-ui, -apple-system, "PingFang TC", "Noto Sans TC", sans-serif';
+
+  // 對齊簡報色票；fontSize 保持常規值，讓 mermaid 自己依文字量算節點大小
+  const light = {
+    background: '#FFFFFF', primaryColor: '#F6F7F9', primaryTextColor: '#131720',
+    primaryBorderColor: '#B9C0CD', lineColor: '#5D6673',
+    secondaryColor: '#EEF0FC', tertiaryColor: '#FFFFFF',
+    fontFamily: FONT, fontSize: '16px'
+  };
+  const dark = {
+    background: '#161C26', primaryColor: '#1D242F', primaryTextColor: '#E9ECF2',
+    primaryBorderColor: '#39414F', lineColor: '#8A93A3',
+    secondaryColor: '#1C2138', tertiaryColor: '#161C26',
+    fontFamily: FONT, fontSize: '16px'
+  };
+
+  const nodes = Array.from(document.querySelectorAll('pre.mermaid'));
+  nodes.forEach(n => { n.dataset.src = n.textContent; });
+
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function draw() {
+    nodes.forEach(n => {
+      n.removeAttribute('data-processed');
+      n.textContent = n.dataset.src;
+    });
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'base',
+      themeVariables: mq.matches ? dark : light,
+      flowchart: { htmlLabels: true, curve: 'basis', nodeSpacing: 34, rankSpacing: 44 }
+    });
+    mermaid.run({ nodes });
+  }
+
+  draw();
+  mq.addEventListener('change', draw);   // 切換系統主題時重繪，否則圖的配色會留在舊主題
+</script>
+</body>
+</html>
