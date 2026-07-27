@@ -317,9 +317,20 @@
   .diagram pre.mermaid {
     margin: 0; padding: 0; background: none; border: none;
     width: 100%; text-align: center;
+    color: transparent;
   }
 
-  .diagram svg { max-width: 100%; height: auto; }
+  .diagram pre.mermaid[data-processed] { color: inherit; }
+
+  /* mermaid writes an inline max-width on the <svg>, so overriding needs !important.
+     width:100% scales the diagram up to fill the stage; the max-height cap stops
+     tall graphs from overflowing. Measured in-browser: 26u safe, 34u overflows. */
+  .diagram svg {
+    max-width: none !important;
+    width: 100%;
+    height: auto;
+    max-height: calc(var(--u) * 26);
+  }
 
   .hud {
     width: calc(var(--u) * 100); max-width: 100%;
@@ -948,6 +959,13 @@ keychain <span class="a">use-login</span>                        <span class="c"
 
     var start = parseInt((location.hash || '').replace('#', ''), 10);
     go(isNaN(start) ? 0 : start - 1);
+
+    // 別人分享 #12 這種連結時，同一頁內也要跳得動。
+    // go() 用的是 replaceState，不會觸發這個事件，所以不會迴圈。
+    window.addEventListener('hashchange', function () {
+      var n = parseInt((location.hash || '').replace('#', ''), 10);
+      if (!isNaN(n) && n - 1 !== idx) go(n - 1);
+    });
   })();
 </script>
 
@@ -971,7 +989,18 @@ keychain <span class="a">use-login</span>                        <span class="c"
   };
 
   const nodes = Array.from(document.querySelectorAll('pre.mermaid'));
-  nodes.forEach(n => { n.dataset.src = n.textContent; });
+  // <pre> 裡的 <br/> 會被 HTML 解析器變成真正的 <br> 元素，textContent 只取文字節點、
+  // 會把它整個丟掉，節點文字就不換行。改用 innerHTML 保留標籤，再還原 entity
+  // （&amp; 必須最後解，否則會二次 decode）。
+  nodes.forEach(n => {
+    n.dataset.src = n.innerHTML
+      .replace(/<br\s*\/?>/gi, '<br/>')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&amp;/g, '&');
+  });
 
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
 
