@@ -76,25 +76,9 @@
   .deck {
     --display: "Avenir Next", Futura, "Segoe UI Variable Display", "Helvetica Neue", system-ui, sans-serif;
     --mono: ui-monospace, "SF Mono", Menlo, "JetBrains Mono", Consolas, monospace;
-    display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh;
   }
-
-  .rail {
-    width: calc(var(--u) * 100); max-width: 100%;
-    display: flex; font-family: var(--mono);
-    font-size: calc(var(--u) * 1.2); letter-spacing: 0.09em; text-transform: uppercase;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .rail span {
-    flex: 1; padding: calc(var(--u) * 1) calc(var(--u) * 0.5);
-    text-align: center; color: var(--muted);
-    border-top: 2px solid transparent; cursor: pointer;
-    transition: color 0.25s, border-color 0.25s, background 0.25s;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-
-  .rail span[data-on="1"] { color: var(--accent); border-top-color: var(--accent); background: var(--accent-soft); }
 
   .stage {
     position: relative; width: calc(var(--u) * 100); height: calc(var(--u) * 56.25);
@@ -103,7 +87,7 @@
 
   .slide {
     position: absolute; inset: 0;
-    padding: calc(var(--u) * 4) calc(var(--u) * 5) calc(var(--u) * 3.4);
+    padding: calc(var(--u) * 3.2) calc(var(--u) * 4.4) calc(var(--u) * 2.8);
     display: flex; flex-direction: column; gap: calc(var(--u) * 1.5);
     opacity: 0; visibility: hidden; pointer-events: none;
     transition: opacity 0.3s ease;
@@ -111,7 +95,7 @@
 
   .slide[data-on="1"] { opacity: 1; visibility: visible; pointer-events: auto; }
 
-  @media (prefers-reduced-motion: reduce) { .slide, .rail span { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
 
   .eyebrow {
     font-family: var(--mono); font-size: var(--fs-eyebrow);
@@ -332,38 +316,79 @@
     max-height: calc(var(--u) * 26);
   }
 
-  .hud {
-    width: calc(var(--u) * 100); max-width: 100%;
-    display: flex; align-items: center; gap: calc(var(--u) * 1.6);
-    padding: calc(var(--u) * 0.95) calc(var(--u) * 0.4);
-    font-family: var(--mono); font-size: calc(var(--u) * 1.22);
-    color: var(--muted); border-top: 1px solid var(--line);
+  /* ---------- chapter dividers ---------- */
+
+  .chapter { justify-content: center; gap: calc(var(--u) * 1.3); }
+
+  .chapter .chnum {
+    font-family: var(--mono); font-size: calc(var(--u) * 1.3);
+    letter-spacing: 0.34em; text-transform: uppercase; color: var(--accent);
   }
 
-  .track { flex: 1; height: 2px; background: var(--line); position: relative; }
-  .track i { position: absolute; inset: 0 auto 0 0; background: var(--accent); transition: width 0.3s; }
-  .hud .n { font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
+  .chapter h2 { font-size: calc(var(--u) * 6.4); letter-spacing: -0.03em; }
 
-  .hud button {
-    font: inherit; font-family: var(--mono); color: var(--muted);
-    background: none; border: 1px solid var(--line); border-radius: 3px;
-    padding: calc(var(--u) * 0.3) calc(var(--u) * 1); cursor: pointer;
+  .chapter .chsub {
+    font-size: calc(var(--u) * 2); line-height: 1.5;
+    color: var(--ink-soft); max-width: 62ch;
   }
 
-  .hud button:hover { color: var(--accent); border-color: var(--accent); }
-  .hud button:focus-visible, .rail span:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chapter .chlist {
+    list-style: none; margin: calc(var(--u) * 1.4) 0 0; padding: 0 0 0 calc(var(--u) * 1.8);
+    border-left: 2px solid var(--line);
+    display: flex; flex-direction: column; gap: calc(var(--u) * 0.72);
+    font-size: calc(var(--u) * 1.52); line-height: 1.35; color: var(--muted);
+  }
+
+  /* ---------- closing ---------- */
+
+  .thanks { justify-content: center; align-items: center; text-align: center; gap: calc(var(--u) * 1.8); }
+
+  .thanks h1 {
+    font-family: var(--display); font-size: calc(var(--u) * 9);
+    letter-spacing: 0.06em; font-weight: 600; margin: 0; color: var(--ink);
+  }
+
+  .thanks .qa {
+    font-family: var(--mono); font-size: calc(var(--u) * 3);
+    letter-spacing: 0.42em; text-indent: 0.42em; color: var(--accent);
+  }
+
+  .thanks .sig { font-family: var(--mono); font-size: calc(var(--u) * 1.3); letter-spacing: 0.08em; color: var(--muted); }
+
+  /* ---------- corner pager: replaces the old top rail + bottom hud ---------- */
+
+  .corner {
+    position: absolute; z-index: 5;
+    right: calc(var(--u) * 2); bottom: calc(var(--u) * 1);
+    display: flex; align-items: center; gap: calc(var(--u) * 0.5);
+    font-family: var(--mono); font-size: calc(var(--u) * 1.06);
+    color: var(--muted); opacity: 0.5; transition: opacity 0.25s;
+  }
+
+  .corner:hover, .corner:focus-within { opacity: 1; }
+  .corner .n { font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
+
+  .corner button {
+    font: inherit; font-size: calc(var(--u) * 1.5); line-height: 1;
+    color: inherit; background: none; border: 0;
+    padding: 0 calc(var(--u) * 0.35); cursor: pointer;
+  }
+
+  .corner button:hover { color: var(--accent); }
+  .corner button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
   @media (max-width: 760px) {
     :root { --u: 2.9vw; }
     .stage { height: auto; min-height: calc(var(--u) * 90); }
     .slide { position: relative; inset: auto; }
     .compare { grid-template-columns: 1fr; }
+    .chapter h2 { font-size: calc(var(--u) * 5); }
+    .thanks h1 { font-size: calc(var(--u) * 7); }
+    .corner { position: fixed; right: calc(var(--u) * 2); bottom: calc(var(--u) * 2); opacity: 1; }
   }
 </style>
 
 <div class="deck">
-
-  <nav class="rail" id="rail" aria-label="章節"></nav>
 
   <div class="stage" id="stage">
 
@@ -406,10 +431,24 @@
     </section>
 
     <!-- 3 -->
+    <section class="slide chapter" data-sec="發版">
+      <div class="chnum">Chapter 01</div>
+      <h2>發版</h2>
+      <p class="chsub">從按下按鈕，到 App 出現在測試人員手機上，中間經過哪些關卡。</p>
+      <ul class="chlist">
+        <li>發版只要點幾次滑鼠</li>
+        <li>只有 tag 會派發，而且 tag 與分支必須配對</li>
+        <li>一次建置跑過的 job</li>
+        <li>重複的步驟都抽成 composite action</li>
+        <li>為什麼推 tag 需要 App token</li>
+      </ul>
+    </section>
+
+    <!-- 4 -->
     <section class="slide" data-sec="發版">
       <div class="eyebrow">發版 / 主線</div>
       <h2>發版只要點幾次滑鼠</h2>
-      <p class="lede">全部在 GitHub Actions 介面上跑，不需要在本機下 <code>git tag</code>。第三步是自動發生的。</p>
+      <p class="lede">全部在 GitHub Actions 介面上跑，不需要在本機下 <code>git tag</code>。第三步由 CI 自動開 PR，只剩 merge 要按。</p>
       <div class="body">
         <div class="diagram">
 <pre class="mermaid">
@@ -418,7 +457,7 @@ graph LR
   B --> C["review<br/>&amp; merge"]
   C --> D["2 · 推<br/>production tag"]
   D --> E["CI 建置並派發"]
-  D --> F["3 · 自動<br/>bump staging"]
+  D --> F["3 · 自動開<br/>bump staging PR"]
   classDef manual stroke-width:2px
   class B,D manual
 </pre>
@@ -426,11 +465,11 @@ graph LR
       </div>
     </section>
 
-    <!-- 4 -->
+    <!-- 5 -->
     <section class="slide" data-sec="發版">
       <div class="eyebrow">發版 / 派發閘門</div>
       <h2>只有 tag 會派發，而且 tag 與分支必須配對</h2>
-      <p class="lede">推分支、開 PR、手動觸發都只跑測試與建置。一個專職的 job 是唯一的開關，它同時驗兩件事。</p>
+      <p class="lede">推分支、開 PR、手動觸發都只跑測試與建置。一個專職的 job 是唯一的開關，它同時驗三件事。</p>
       <div class="body">
         <div class="compare">
           <div class="pane neutral">
@@ -444,12 +483,16 @@ graph LR
             <p>在 main 推 <code>dev</code> tag、或在 staging 推 <code>v</code> tag，會建置成功但<strong>跳過派發</strong>。</p>
           </div>
         </div>
-        <pre class="code"><span class="c"># 兩個條件都成立才輸出 should_deploy=true，兩個 deploy job 都掛這個條件</span>
+        <pre class="code"><span class="c"># 前兩個條件都成立才輸出 should_deploy=true，兩個 deploy job 都掛這個條件</span>
 if: needs.check-deployment-eligibility.outputs.should_deploy == 'true'</pre>
+        <div class="note">
+          <b>條件三：只提醒、不擋</b>
+          比對 tag 名與該 commit 的版號一不一致，擋「tag 指到很舊的 commit」與「bump 後忘了 merge 就打 tag」。<strong>目前刻意只 warning、不 fail</strong>：先當觀測器，確認沒誤判再當閘門。
+        </div>
       </div>
     </section>
 
-    <!-- 5 -->
+    <!-- 6 -->
     <section class="slide" data-sec="發版">
       <div class="eyebrow">發版 / 流程</div>
       <h2>一次建置跑過的 job</h2>
@@ -470,12 +513,12 @@ graph TB
         <ul class="clean">
           <li>測試、讀版號、判斷派發資格三個平行起跑</li>
           <li>產生 build number 要等閘門結果，才知道這次算不算正式建置</li>
-          <li>Android 與 iOS 平行建置，各自派發到 App Distribution 與 TestFlight</li>
+          <li>Android 與 iOS 平行建置，各自派發到 App Distribution 與 TestFlight；同平台的兩個建置則互斥，一台 builder 一次只跑一個</li>
         </ul>
       </div>
     </section>
 
-    <!-- 6 -->
+    <!-- 7 -->
     <section class="slide" data-sec="發版">
       <div class="eyebrow">發版 / 結構</div>
       <h2>重複的步驟都抽成 composite action</h2>
@@ -484,10 +527,10 @@ graph TB
         <div class="tw">
           <table>
             <thead>
-              <tr><th>composite action</th><th>做什麼</th><th>關鍵 inputs</th></tr>
+              <tr><th>建置與派發用的 composite action</th><th>做什麼</th><th>關鍵 inputs</th></tr>
             </thead>
             <tbody>
-              <tr><td class="m nw">test</td><td>格式檢查、靜態分析、單元測試</td><td class="m">—</td></tr>
+              <tr><td class="m nw">test</td><td>拉 submodule、codegen、格式檢查、靜態分析、單元測試</td><td class="m">—</td></tr>
               <tr><td class="m nw">build-number</td><td>產生建置編號</td><td class="m">environment, persist</td></tr>
               <tr><td class="m nw">build-android</td><td>建 APK，需要時建 AAB</td><td class="m">environment, build_aab</td></tr>
               <tr><td class="m nw">build-ios</td><td>簽章並建 IPA</td><td class="m">environment, 憑證</td></tr>
@@ -502,7 +545,7 @@ graph TB
       </div>
     </section>
 
-    <!-- 7 -->
+    <!-- 8 -->
     <section class="slide" data-sec="發版">
       <div class="eyebrow">發版 / token</div>
       <h2>為什麼推 tag 需要 App token</h2>
@@ -528,8 +571,8 @@ graph TB
         <pre class="code">- uses: actions/create-github-app-token@v3
   id: app-token
   with:
-    client-id: ${{ secrets.RELEASE_APP_ID }}
-    private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+    client-id: ${{ secrets.MY_APP_CLIENT_ID }}
+    private-key: ${{ secrets.MY_APP_PRIVATE_KEY }}
 
 - uses: actions/checkout@v6
   with:
@@ -538,7 +581,21 @@ graph TB
       </div>
     </section>
 
-    <!-- 8 -->
+    <!-- 9 -->
+    <section class="slide chapter" data-sec="版本">
+      <div class="chnum">Chapter 02</div>
+      <h2>版本</h2>
+      <p class="chsub">一次建置的身分是三個數字：版號、tag、建置編號。誰決定它們，以及為什麼是這個格式。</p>
+      <ul class="chlist">
+        <li>一次建置的身分由三個數字組成</li>
+        <li>同版本再發一次，後綴從 -2 開始</li>
+        <li>年月加當月流水號，九位數</li>
+        <li>發版建置與 PR 建置的號碼機制不同</li>
+        <li>計數器存在一個孤兒分支上</li>
+      </ul>
+    </section>
+
+    <!-- 10 -->
     <section class="slide" data-sec="版本">
       <div class="eyebrow">版本 / 全貌</div>
       <h2>一次建置的身分由三個數字組成</h2>
@@ -575,7 +632,7 @@ graph TB
       </div>
     </section>
 
-    <!-- 9 -->
+    <!-- 11 -->
     <section class="slide" data-sec="版本">
       <div class="eyebrow">版本 / tag 命名</div>
       <h2>同版本再發一次，後綴從 -2 開始</h2>
@@ -596,7 +653,7 @@ git ls-remote --tags origin "refs/tags/$BASE_TAG*"</pre>
       </div>
     </section>
 
-    <!-- 10 -->
+    <!-- 12 -->
     <section class="slide" data-sec="版本">
       <div class="eyebrow">版本 / build number</div>
       <h2>年月加當月流水號，九位數</h2>
@@ -622,7 +679,7 @@ git ls-remote --tags origin "refs/tags/$BASE_TAG*"</pre>
       </div>
     </section>
 
-    <!-- 11 -->
+    <!-- 13 -->
     <section class="slide" data-sec="版本">
       <div class="eyebrow">版本 / 兩種建置</div>
       <h2>發版建置與 PR 建置的號碼機制不同</h2>
@@ -648,7 +705,7 @@ git ls-remote --tags origin "refs/tags/$BASE_TAG*"</pre>
       </div>
     </section>
 
-    <!-- 12 -->
+    <!-- 14 -->
     <section class="slide" data-sec="版本">
       <div class="eyebrow">版本 / 計數器</div>
       <h2>計數器存在一個孤兒分支上</h2>
@@ -657,25 +714,43 @@ git ls-remote --tags origin "refs/tags/$BASE_TAG*"</pre>
 build-history.json
 { "production": { "2026-07": 15 }, "development": { "2026-07": 8 } }
 
-<span class="c"># 每次寫入都是 amend + force push，分支永遠只有一個 commit</span>
-git commit <span class="a">--amend</span> -m "Build counter: production 2026-07 = 15"
-git push <span class="a">--force</span> origin build-metadata</pre>
+<span class="c"># 每次遞增都 append 一個 commit，分支歷史就是發版歷史</span>
+git commit -m "Build counter: production 2026-07 = 15"
+git push origin build-metadata     <span class="c"># 被拒 → fetch → 重讀重算 → 再試，最多 3 次</span>
+                                   <span class="c"># 三次全敗就直接 fail，不發沒被記錄的號碼</span></pre>
         <div class="note">
-          <b>為什麼需要排隊</b>
-          因為用 force push，兩個 job 同時寫會互相蓋掉。呼叫端的 job 掛 concurrency group 且 <code>cancel-in-progress: false</code>，讓它排隊而不是取消。
+          <b>兩層防護，以及一個反直覺的觀念</b>
+          第一層：呼叫端的 job 掛 <code>concurrency: { group: build-number-generator, cancel-in-progress: false }</code>，讓計數 job 互斥執行。第二層：push 仍被拒時 fetch 到最新狀態、<strong>重新讀檔重算</strong>再試——重算是關鍵，沿用上一輪算出的數字會寫入過期值，那比衝突本身更糟，會發出重複的號碼。<br>
+          ⚠️ GitHub 的 concurrency group <strong>不是佇列</strong>：同一 group 同時只保留一個 running ＋一個 pending，第三個 run 進場會把原本 pending 的那個取消掉。所以它只能防「同時寫入」，不保證「每個 run 都拿到號碼」——正確性其實來自第二層。
         </div>
       </div>
     </section>
 
-    <!-- 13 -->
+    <!-- 15 -->
+    <section class="slide chapter" data-sec="環境">
+      <div class="chnum">Chapter 03</div>
+      <h2>環境</h2>
+      <p class="chsub">同一份程式碼，怎麼長成兩個能同時裝在一台手機上的 app。</p>
+      <ul class="chlist">
+        <li>所有環境差異都從一個 JSON 出發</li>
+        <li>一個 base，一個後綴</li>
+        <li>Gradle 直接讀，Xcode 要人翻譯</li>
+        <li>有些東西沒有變數可用，只能把檔案複製到位</li>
+        <li>兩套獨立專案，靠 bundle id 對上</li>
+      </ul>
+    </section>
+
+    <!-- 16 -->
     <section class="slide" data-sec="環境">
       <div class="eyebrow">環境 / 入口</div>
       <h2>所有環境差異都從一個 JSON 出發</h2>
       <p class="lede">每個環境一份 JSON，是唯一的來源。CI 只做一件事：把對應那份餵給 Flutter。</p>
       <div class="body">
-        <pre class="code"><span class="c"># 建置前先注入 git hash 等資訊，產出最終的 dart-define.json</span>
+        <pre class="code"><span class="c"># 建置前先注入建置身分，產出最終的 dart-define.json</span>
 GIT_HASH=$(git rev-parse --short HEAD)
-jq '. + {GIT_HASH: $git_hash}' "$ORIGINAL_CONFIG" &gt; build_config/dart-define.json
+<span class="c"># 同時疊上 GIT_HASH 與 crash 回報用的 release／dist 標記</span>
+jq '. + {GIT_HASH: $git_hash, RELEASE: $release, DIST: $dist}' \
+   "$ORIGINAL_CONFIG" &gt; build_config/dart-define.json
 
 flutter build apk --release <span class="a">--dart-define-from-file=build_config/dart-define.json</span> \
   --build-name=1.4.2 --build-number=260700015</pre>
@@ -683,11 +758,12 @@ flutter build apk --release <span class="a">--dart-define-from-file=build_config
           <li>Dart 端讀得到這些值，<strong>Android 的 Gradle 也讀得到</strong>，所以 bundle id 與資源能跟著切</li>
           <li>iOS 讀不到，需要另一支 script 轉成 xcconfig</li>
           <li>最終產出的 <code>dart-define.json</code> 在 <code>.gitignore</code> 裡，它是產物不是設定</li>
+          <li>這一步是唯一把「建置身分」灌進 App 的地方——CI 端先算好 release 標記再交給它，所以線上 crash 報告能對回究竟是哪一次建置</li>
         </ul>
       </div>
     </section>
 
-    <!-- 14 -->
+    <!-- 17 -->
     <section class="slide" data-sec="環境">
       <div class="eyebrow">環境 / bundle id</div>
       <h2>一個 base，一個後綴</h2>
@@ -705,7 +781,7 @@ flutter build apk --release <span class="a">--dart-define-from-file=build_config
       </div>
     </section>
 
-    <!-- 15 -->
+    <!-- 18 -->
     <section class="slide" data-sec="環境">
       <div class="eyebrow">環境 / 後綴怎麼到位</div>
       <h2>Gradle 直接讀，Xcode 要人翻譯</h2>
@@ -718,6 +794,7 @@ dartDefines.split(",").forEach { entry -&gt;
   val decoded = String(
     Base64.getDecoder().decode(entry))
   <span class="c">// ENV=development → 設定整組變數</span>
+  <span class="c">// 未知 ENV → throw，不靜默沿用 dev</span>
 }
 
 defaultConfig {
@@ -744,7 +821,7 @@ PRODUCT_BUNDLE_IDENTIFIER =
       </div>
     </section>
 
-    <!-- 16 -->
+    <!-- 19 -->
     <section class="slide" data-sec="環境">
       <div class="eyebrow">環境 / 檔案就位</div>
       <h2>有些東西沒有變數可用，只能把檔案複製到位</h2>
@@ -786,7 +863,7 @@ PRODUCT_BUNDLE_IDENTIFIER =
       </div>
     </section>
 
-    <!-- 17 -->
+    <!-- 20 -->
     <section class="slide" data-sec="環境">
       <div class="eyebrow">環境 / Firebase</div>
       <h2>兩套獨立專案，靠 bundle id 對上</h2>
@@ -798,12 +875,25 @@ PRODUCT_BUNDLE_IDENTIFIER =
         <ul class="clean">
           <li>要再加環境，架構撐得住：所有環境差異都收斂成「一個 <code>ENV</code> 值 ＋ 一組按環境命名的目錄」，照樣式新增就好</li>
           <li>但有兩處分支要各補一個 case：Gradle 的 <code>when (ENV)</code> 與 iOS script 的 <code>case</code>，還要先去 Firebase Console 註冊新 bundle id 才拿得到設定檔</li>
+          <li><strong>漏改不會靜默出錯</strong>：兩處都設計成遇到未知環境直接 fail，不會沿用預設值建出一個看起來正常、實際上連到錯誤 Firebase 專案的 app</li>
           <li>iOS 的 dSYM 上傳也吃這份設定檔，環境錯了符號會傳到另一個專案，線上當機就查不到來源</li>
         </ul>
       </div>
     </section>
 
-    <!-- 18 -->
+    <!-- 21 -->
+    <section class="slide chapter" data-sec="進階">
+      <div class="chnum">Chapter 04</div>
+      <h2>進階</h2>
+      <p class="chsub">推完 tag 之後自動發生的事、iOS 簽章怎麼不弄壞機器，以及可以帶走的設計原則。</p>
+      <ul class="chlist">
+        <li>推了 tag 之後，staging 會發生什麼</li>
+        <li>iOS 簽章走臨時 keychain</li>
+        <li>可以帶走的幾個設計原則</li>
+      </ul>
+    </section>
+
+    <!-- 22 -->
     <section class="slide" data-sec="進階">
       <div class="eyebrow">進階 / 分流</div>
       <h2>推了 tag 之後，staging 會發生什麼</h2>
@@ -815,10 +905,10 @@ PRODUCT_BUNDLE_IDENTIFIER =
               <tr><th>情境</th><th>tag</th><th>main 有新 commit</th><th>結果</th></tr>
             </thead>
             <tbody>
-              <tr><td class="nw">A 真 hotfix</td><td class="m nw">v1.4.3</td><td class="m nw">有</td><td>把 main 併回 staging，並 bump 版號</td></tr>
-              <tr><td class="nw">B 重發加修正</td><td class="m nw">v1.4.2-2</td><td class="m nw">有</td><td>只併回，不 bump</td></tr>
+              <tr><td class="nw">A 真 hotfix</td><td class="m nw">v1.4.3</td><td class="m nw">有</td><td>開 PR：把 main 併回 staging，並 bump 版號</td></tr>
+              <tr><td class="nw">B 重發加修正</td><td class="m nw">v1.4.2-2</td><td class="m nw">有</td><td>開 PR：只併回，不 bump</td></tr>
               <tr><td class="nw">C 純重打包</td><td class="m nw">v1.4.2-2</td><td class="m nw">沒有</td><td>兩支都跳過</td></tr>
-              <tr><td class="nw">D 正常發版</td><td class="m nw">v1.4.3</td><td class="m nw">沒有</td><td>只 bump staging 版號</td></tr>
+              <tr><td class="nw">D 正常發版</td><td class="m nw">v1.4.3</td><td class="m nw">沒有</td><td>開 PR：只 bump staging 版號</td></tr>
             </tbody>
           </table>
         </div>
@@ -827,40 +917,36 @@ git rev-list --count origin/staging..origin/main --no-merges   <span class="c">#
 [[ "$TAG" =~ -[0-9]+$ ]]                                       <span class="c"># 要不要 bump</span></pre>
         <p class="lede wide">把「要不要併回」與「要不要 bump」拆成兩個獨立問題，是這段設計最關鍵的一步。四種情境就從兩個布林值自然長出來，不需要寫四條規則。</p>
         <div class="note">
-          <b>這個判定有個前提</b>
-          <code>rev-list --count</code> 比對的是 commit SHA、不是內容，而 rebase 與 squash merge 都會重寫 SHA，於是正常發版會被誤判成有 divergence。要嘛把 staging → main 限制成 merge commit，要嘛改用 <code>--cherry-pick --right-only</code> 以 patch-id 比對，後者對兩種 merge 模式都免疫。
+          <b>這個判定的前提，最後是用設定守住的</b>
+          <code>rev-list --count</code> 比對 commit SHA、不是內容，而 rebase 與 squash merge 都會重寫 SHA，正常發版就會被誤判成有 divergence。修法有兩條：以 patch-id 比對（<code>--cherry-pick --right-only</code>），或限制 merge 模式。我們選了後者，repo 設定與分支保護規則都只留 merge commit——<strong>與其讓 script 抵抗三種 merge 模式，不如讓其中兩種不存在</strong>。
         </div>
       </div>
     </section>
 
-    <!-- 19 -->
+    <!-- 23 -->
     <section class="slide" data-sec="進階">
       <div class="eyebrow">進階 / iOS 簽章</div>
       <h2>iOS 簽章走臨時 keychain</h2>
       <p class="lede">自架 runner 的 keychain 是長期狀態，一旦被污染，之後所有 iOS 建置都會出問題，而且很難查。所以整個簽章流程都在臨時 keychain 裡完成。</p>
       <div class="body">
-        <pre class="code">keychain <span class="a">initialize</span>                       <span class="c"># 建立臨時 keychain 並設為預設</span>
-
-app-store-connect fetch-signing-files "$BUNDLE_ID" \   <span class="c"># 用算好的 bundle id 抓</span>
-  --platform IOS --type IOS_APP_STORE \
-  --certificate-key=@file:$CERT_KEY_PATH \
+        <pre class="code">keychain <span class="a">initialize --path "$KEYCHAIN"</span>   <span class="c"># 固定路徑，收尾才刪得精準</span>
+app-store-connect fetch-signing-files "$BUNDLE_ID" \      <span class="c"># 用算好的 bundle id 抓</span>
+  --platform IOS --type IOS_APP_STORE --certificate-key=@file:$CERT_KEY_PATH \
   --strict-match-identifier --delete-stale-profiles --create
-
 keychain add-certificates --certificate "$RUNNER_TEMP/certificates/*.p12"
 xcode-project use-profiles --export-options-plist=$RUNNER_TEMP/export_options.plist
-
 flutter build ipa --release --export-options-plist=...
-
-keychain <span class="a">use-login</span>                        <span class="c"># if: always() —— 失敗也要還原</span></pre>
+keychain <span class="a">use-login</span>                        <span class="c"># if: always() —— 先還原 default</span>
+keychain <span class="a">delete --path "$KEYCHAIN"</span>        <span class="c"># if: always() —— 再刪，順序不能顛倒</span></pre>
         <ul class="clean">
-          <li>還原那步掛 <code>if: always()</code>，所以建置失敗也不會把預設 keychain 留在臨時的那個</li>
+          <li>還原與刪除都掛 <code>if: always()</code>；順序是 load-bearing——先還原 default 再刪，顛倒了機器就沒有 default keychain。刪除要帶 <code>--path</code>，不帶會刪到系統預設的那個</li>
           <li>憑證與 private key 都寫在 <code>$RUNNER_TEMP</code>，收尾一併刪掉</li>
           <li>這裡用的是 Codemagic CLI tools，它把 keychain 與憑證的處理包成幾個指令</li>
         </ul>
       </div>
     </section>
 
-    <!-- 20 -->
+    <!-- 24 -->
     <section class="slide" data-sec="進階">
       <div class="eyebrow">收尾</div>
       <h2>可以帶走的幾個設計原則</h2>
@@ -871,67 +957,40 @@ keychain <span class="a">use-login</span>                        <span class="c"
           <li><strong>版號只留一個來源。</strong>其他數字（tag 名、建置編號）都從它推導，不要讓人有機會填錯第二個地方。</li>
           <li><strong>環境差異收斂成一個入口。</strong>能用變數的用變數，不能的就在建置前把檔案複製到位，並把產物都放進 gitignore。</li>
           <li><strong>把複雜情境拆成獨立的布林值。</strong>四種發版情境是兩個問題的組合，不是四條規則。</li>
-          <li><strong>不要污染 runner 的長期狀態。</strong>臨時 keychain、臨時 SSH key，並且在失敗路徑上也要還原。</li>
+          <li><strong>不要污染 runner 的長期狀態。</strong>臨時 keychain、臨時 SSH key，在失敗路徑上也要還原——而且還原之後記得刪掉，否則憑證會一次次累積在同一台機器上。</li>
+          <li><strong>把外部字串當資料，不要當指令。</strong>branch 與 tag 名是使用者可以決定的，直接內插進 shell 就是一條注入路徑；順著同一個念頭，CI 的權限預設給唯讀，只有真的要寫的那一個 job 才提升。</li>
+          <li><strong>會靜默失敗的地方要讓它吵。</strong>未知的環境值、找不到的憑證、被跳過的部署，全部改成當場失敗或至少浮一條 warning——最貴的錯誤是那種綠燈、但東西是錯的。</li>
         </ol>
       </div>
     </section>
 
-  </div>
+    <!-- 25 -->
+    <section class="slide thanks" data-sec="進階">
+      <h1>謝謝</h1>
+      <p class="qa">Q &amp; A</p>
+      <p class="sig">胖胖 · TVBS Lab Team</p>
+    </section>
 
-  <footer class="hud">
-    <button id="prev" type="button" aria-label="上一頁">←</button>
-    <button id="next" type="button" aria-label="下一頁">→</button>
-    <span class="n" id="counter">1 / 20</span>
-    <div class="track" aria-hidden="true"><i id="bar"></i></div>
-    <span id="secname">Overview</span>
-  </footer>
+    <div class="corner">
+      <button id="prev" type="button" aria-label="上一頁">‹</button>
+      <span class="n" id="counter">1 / 25</span>
+      <button id="next" type="button" aria-label="下一頁">›</button>
+    </div>
+
+  </div>
 
 </div>
 
 <script>
   (function () {
     var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
-    var rail = document.getElementById('rail');
     var counter = document.getElementById('counter');
-    var bar = document.getElementById('bar');
-    var secname = document.getElementById('secname');
     var idx = 0;
-
-    var sections = [];
-    slides.forEach(function (s) {
-      var name = s.getAttribute('data-sec');
-      if (sections.indexOf(name) === -1) sections.push(name);
-    });
-
-    sections.forEach(function (name) {
-      var el = document.createElement('span');
-      el.textContent = name;
-      el.setAttribute('data-name', name);
-      el.setAttribute('tabindex', '0');
-      el.setAttribute('role', 'button');
-      el.addEventListener('click', function () { jumpToSection(name); });
-      el.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jumpToSection(name); }
-      });
-      rail.appendChild(el);
-    });
-
-    function jumpToSection(name) {
-      for (var i = 0; i < slides.length; i++) {
-        if (slides[i].getAttribute('data-sec') === name) { go(i); return; }
-      }
-    }
 
     function go(n) {
       idx = Math.max(0, Math.min(slides.length - 1, n));
       slides.forEach(function (s, i) { s.setAttribute('data-on', i === idx ? '1' : '0'); });
-      var cur = slides[idx].getAttribute('data-sec');
-      Array.prototype.forEach.call(rail.children, function (c) {
-        c.setAttribute('data-on', c.getAttribute('data-name') === cur ? '1' : '0');
-      });
       counter.textContent = (idx + 1) + ' / ' + slides.length;
-      bar.style.width = ((idx + 1) / slides.length * 100) + '%';
-      secname.textContent = cur;
       if (history.replaceState) history.replaceState(null, '', '#' + (idx + 1));
       var body = slides[idx].querySelector('.body');
       if (body) body.scrollTop = 0;
