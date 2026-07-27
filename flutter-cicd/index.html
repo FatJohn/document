@@ -332,13 +332,6 @@
     color: var(--ink-soft); max-width: 62ch;
   }
 
-  .chapter .chlist {
-    list-style: none; margin: calc(var(--u) * 1.4) 0 0; padding: 0 0 0 calc(var(--u) * 1.8);
-    border-left: 2px solid var(--line);
-    display: flex; flex-direction: column; gap: calc(var(--u) * 0.72);
-    font-size: calc(var(--u) * 1.52); line-height: 1.35; color: var(--muted);
-  }
-
   /* ---------- closing ---------- */
 
   .thanks { justify-content: center; align-items: center; text-align: center; gap: calc(var(--u) * 1.8); }
@@ -435,13 +428,6 @@
       <div class="chnum">Chapter 01</div>
       <h2>發版</h2>
       <p class="chsub">從按下按鈕，到 App 出現在測試人員手機上，中間經過哪些關卡。</p>
-      <ul class="chlist">
-        <li>發版只要點幾次滑鼠</li>
-        <li>只有 tag 會派發，而且 tag 與分支必須配對</li>
-        <li>一次建置跑過的 job</li>
-        <li>重複的步驟都抽成 composite action</li>
-        <li>為什麼推 tag 需要 App token</li>
-      </ul>
     </section>
 
     <!-- 4 -->
@@ -586,13 +572,6 @@ graph TB
       <div class="chnum">Chapter 02</div>
       <h2>版本</h2>
       <p class="chsub">一次建置的身分是三個數字：版號、tag、建置編號。誰決定它們，以及為什麼是這個格式。</p>
-      <ul class="chlist">
-        <li>一次建置的身分由三個數字組成</li>
-        <li>同版本再發一次，後綴從 -2 開始</li>
-        <li>年月加當月流水號，九位數</li>
-        <li>發版建置與 PR 建置的號碼機制不同</li>
-        <li>計數器存在一個孤兒分支上</li>
-      </ul>
     </section>
 
     <!-- 10 -->
@@ -731,13 +710,6 @@ git push origin build-metadata     <span class="c"># 被拒 → fetch → 重讀
       <div class="chnum">Chapter 03</div>
       <h2>環境</h2>
       <p class="chsub">同一份程式碼，怎麼長成兩個能同時裝在一台手機上的 app。</p>
-      <ul class="chlist">
-        <li>所有環境差異都從一個 JSON 出發</li>
-        <li>一個 base，一個後綴</li>
-        <li>Gradle 直接讀，Xcode 要人翻譯</li>
-        <li>有些東西沒有變數可用，只能把檔案複製到位</li>
-        <li>兩套獨立專案，靠 bundle id 對上</li>
-      </ul>
     </section>
 
     <!-- 16 -->
@@ -886,11 +858,6 @@ PRODUCT_BUNDLE_IDENTIFIER =
       <div class="chnum">Chapter 04</div>
       <h2>進階</h2>
       <p class="chsub">推完 tag 之後自動發生的事、iOS 簽章怎麼不弄壞機器，以及可以帶走的設計原則。</p>
-      <ul class="chlist">
-        <li>推了 tag 之後，staging 會發生什麼</li>
-        <li>iOS 簽章走臨時 keychain</li>
-        <li>可以帶走的幾個設計原則</li>
-      </ul>
     </section>
 
     <!-- 22 -->
