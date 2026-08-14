@@ -3,166 +3,537 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>胖胖的簡報</title>
+<meta name="description" content="JohnShu 的公開技術簡報與實作筆記，整理軟體工程、工具、流程與產品開發經驗。">
+<title>公開技術簡報 · JohnShu</title>
 <style>
   :root {
-    --paper: #F6F7F9;
-    --card: #FFFFFF;
-    --ink: #131720;
-    --ink-soft: #39414F;
-    --muted: #5D6673;
-    --line: #DCE0E7;
-    --accent: #4A57C8;
-    --accent-soft: #EEF0FC;
+    color-scheme: light dark;
+    --paper: #F1F5F9;
+    --paper-grid: rgba(24, 55, 88, 0.055);
+    --surface: #FFFFFF;
+    --surface-raised: #F8FAFC;
+    --ink: #102033;
+    --ink-soft: #3F5063;
+    --muted: #68788A;
+    --line: #CAD5E1;
+    --line-strong: #93A5B8;
+    --blue: #1E5F95;
+    --blue-deep: #16496F;
+    --blue-soft: #E7F1F8;
+    --signal: #D86E2E;
+    --signal-soft: #FFF0E6;
+    --shadow: 0 24px 70px rgba(32, 57, 83, 0.12);
 
-    --display: "Avenir Next", Futura, "Segoe UI Variable Display", "Helvetica Neue", system-ui, sans-serif;
-    --mono: ui-monospace, "SF Mono", Menlo, "JetBrains Mono", Consolas, monospace;
+    --display: "Avenir Next", "Segoe UI Variable Display", "PingFang TC", sans-serif;
+    --body: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+    --mono: "SFMono-Regular", "Cascadia Code", "Roboto Mono", Consolas, monospace;
   }
 
   @media (prefers-color-scheme: dark) {
     :root {
-      --paper: #0E1219; --card: #161C26; --ink: #E9ECF2; --ink-soft: #BCC3D0;
-      --muted: #8A93A3; --line: #262E3B; --accent: #8E98F7; --accent-soft: #1C2138;
+      --paper: #0C141D;
+      --paper-grid: rgba(144, 178, 209, 0.055);
+      --surface: #121E2A;
+      --surface-raised: #172533;
+      --ink: #EDF4FA;
+      --ink-soft: #C0CFDD;
+      --muted: #91A3B5;
+      --line: #2A3B4C;
+      --line-strong: #526A80;
+      --blue: #70B8E8;
+      --blue-deep: #A8D9F6;
+      --blue-soft: #142E42;
+      --signal: #F2A16F;
+      --signal-soft: #3A251C;
+      --shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
     }
   }
 
   *, *::before, *::after { box-sizing: border-box; }
 
+  html { scroll-behavior: smooth; }
+
   body {
     margin: 0;
-    background: var(--paper);
+    min-width: 20rem;
+    background-color: var(--paper);
+    background-image:
+      linear-gradient(var(--paper-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--paper-grid) 1px, transparent 1px);
+    background-size: 2.5rem 2.5rem;
     color: var(--ink);
-    font-family: system-ui, -apple-system, "PingFang TC", "Noto Sans TC", sans-serif;
+    font-family: var(--body);
     -webkit-font-smoothing: antialiased;
-    line-height: 1.5;
+    line-height: 1.65;
   }
 
-  .wrap {
-    max-width: 46rem;
-    margin: 0 auto;
-    padding: clamp(2.5rem, 8vw, 5.5rem) clamp(1.25rem, 5vw, 2rem) 4rem;
+  a { color: inherit; }
+
+  .shell {
+    width: min(70rem, calc(100% - 2.5rem));
+    margin-inline: auto;
   }
 
-  header { border-bottom: 1px solid var(--line); padding-bottom: 1.75rem; }
+  .site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 1.5rem;
+    border-bottom: 1px solid var(--line);
+  }
 
-  .who {
+  .identity {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
     font-family: var(--display);
-    font-size: clamp(1.9rem, 5vw, 2.6rem);
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    margin: 0;
+    font-size: 0.86rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
   }
 
-  .what {
+  .identity-mark {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    aspect-ratio: 1;
+    border: 1px solid var(--line-strong);
+    color: var(--blue-deep);
     font-family: var(--mono);
-    font-size: 0.82rem;
+    font-size: 0.72rem;
+  }
+
+  .public-label {
+    margin: 0;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.72rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--muted);
-    margin: 0.6rem 0 0;
   }
 
-  h2 {
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 0.75fr);
+    gap: clamp(3rem, 8vw, 7rem);
+    align-items: end;
+    padding-block: clamp(4.5rem, 10vw, 8.5rem) clamp(3.5rem, 8vw, 6.5rem);
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 0 0 1.2rem;
+    color: var(--blue-deep);
     font-family: var(--mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.14em;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 2.5rem;
+    height: 2px;
+    background: var(--signal);
+  }
+
+  h1, h2, p { margin-top: 0; }
+
+  h1 {
+    max-width: 12ch;
+    margin-bottom: 1.5rem;
+    font-family: var(--display);
+    font-size: clamp(3rem, 7.1vw, 6.4rem);
+    font-weight: 650;
+    letter-spacing: -0.055em;
+    line-height: 0.98;
+    text-wrap: balance;
+  }
+
+  .hero-copy {
+    max-width: 42rem;
+    margin-bottom: 0;
+    color: var(--ink-soft);
+    font-size: clamp(1.05rem, 1.8vw, 1.3rem);
+  }
+
+  .reader-note {
+    padding-left: 1.5rem;
+    border-left: 1px solid var(--line-strong);
+  }
+
+  .reader-note h2 {
+    margin-bottom: 1.15rem;
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .reader-note ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .reader-note li {
+    position: relative;
+    padding: 0.7rem 0 0.7rem 1.35rem;
+    border-top: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-size: 0.94rem;
+  }
+
+  .reader-note li::before {
+    content: "";
+    position: absolute;
+    top: 1.25rem;
+    left: 0;
+    width: 0.42rem;
+    height: 0.42rem;
+    border: 2px solid var(--signal);
+    border-radius: 50%;
+  }
+
+  .catalog-header {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr);
+    gap: 2rem 4rem;
+    align-items: end;
+    margin-bottom: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .catalog-kicker {
+    margin: 0;
+    color: var(--signal);
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .catalog-copy {
+    display: grid;
+    grid-template-columns: minmax(16rem, 0.85fr) minmax(18rem, 1fr);
+    align-items: baseline;
+    gap: 1.5rem 3rem;
+  }
+
+  .catalog-copy h2 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(1.8rem, 3.5vw, 3rem);
+    font-weight: 650;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+  }
+
+  .catalog-copy p {
+    max-width: 28rem;
+    margin: 0;
     color: var(--muted);
-    font-weight: 600;
-    margin: 2.75rem 0 1rem;
+    font-size: 0.88rem;
   }
 
-  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+  .deck-list {
+    display: grid;
+    gap: 1.5rem;
+    margin-bottom: clamp(3rem, 7vw, 6rem);
+  }
 
-  a.deck {
-    display: block;
-    background: var(--card);
+  .feature {
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
     border: 1px solid var(--line);
-    border-left: 3px solid var(--accent);
-    border-radius: 0.4rem;
-    padding: 1.35rem 1.5rem;
+    box-shadow: var(--shadow);
+  }
+
+  .feature::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 0.32rem;
+    background: var(--blue);
+  }
+
+  .feature-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(17rem, 0.8fr);
+    gap: clamp(2rem, 6vw, 5rem);
+    padding: clamp(2rem, 5vw, 4.5rem);
+  }
+
+  .feature-label {
+    margin-bottom: 1rem;
+    color: var(--signal);
+    font-family: var(--mono);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .feature h2 {
+    max-width: 17ch;
+    margin-bottom: 1.25rem;
+    font-family: var(--display);
+    font-size: clamp(2rem, 4.5vw, 3.8rem);
+    font-weight: 650;
+    letter-spacing: -0.045em;
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+
+  .feature-description {
+    max-width: 42rem;
+    margin-bottom: 2rem;
+    color: var(--ink-soft);
+    font-size: 1.03rem;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.25rem;
+  }
+
+  .primary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2.5rem;
+    min-width: 13rem;
+    padding: 0.9rem 1.1rem;
+    background: var(--blue-deep);
+    color: var(--surface);
+    font-family: var(--display);
+    font-weight: 700;
     text-decoration: none;
-    color: inherit;
-    transition: border-color 0.2s, transform 0.2s, background 0.2s;
+    transition: background 160ms ease, transform 160ms ease;
   }
 
-  a.deck:hover, a.deck:focus-visible {
-    border-color: var(--accent);
-    background: var(--accent-soft);
-    transform: translateX(2px);
+  @media (prefers-color-scheme: dark) {
+    .primary-action { color: #0A1722; }
   }
 
-  a.deck:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .primary-action::after { content: "→"; font-size: 1.2rem; }
+
+  .primary-action:hover { background: var(--signal); transform: translateY(-2px); }
+
+  .deck-meta {
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+  }
+
+  .slide-object {
+    position: relative;
+    align-self: center;
+    min-height: 19rem;
+    padding: 2.3rem 2rem;
+    background: #0E1620;
+    color: #F2F7FB;
+    box-shadow: 1.1rem 1.1rem 0 var(--blue-soft), 1.1rem 1.1rem 0 1px var(--line);
+  }
+
+  .slide-object::before {
+    content: "Flutter · CI/CD";
+    display: block;
+    margin-bottom: 4.5rem;
+    color: #8EB9D8;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .slide-object strong {
+    display: block;
+    max-width: 9ch;
+    font-family: var(--display);
+    font-size: clamp(1.7rem, 3vw, 2.7rem);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+  }
+
+  .slide-object span {
+    position: absolute;
+    right: 1.25rem;
+    bottom: 1rem;
+    color: #8EB9D8;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+  }
+
+  .companion {
+    display: grid;
+    grid-template-columns: minmax(10rem, 0.32fr) minmax(0, 1fr) auto;
+    gap: 1.5rem 2.25rem;
+    align-items: center;
+    padding: 1.6rem clamp(2rem, 5vw, 4.5rem);
+    background: var(--surface-raised);
+    border-top: 1px solid var(--line);
+  }
+
+  .companion-label {
+    margin: 0;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .companion-copy {
+    margin: 0;
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+  }
+
+  .companion-link {
+    white-space: nowrap;
+    color: var(--blue-deep);
+    font-family: var(--display);
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-underline-offset: 0.25em;
+  }
+
+  .companion-link:hover { color: var(--signal); }
+
+  .site-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 2.5rem 3.5rem;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+  }
+
+  a:focus-visible {
+    outline: 3px solid var(--signal);
+    outline-offset: 4px;
+  }
+
+  @media (max-width: 760px) {
+    .shell { width: min(100% - 1.5rem, 42rem); }
+    .site-header { padding-block: 1rem; }
+    .identity-text { display: none; }
+    .public-label { font-size: 0.63rem; }
+
+    .hero {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+      padding-block: 3.75rem 3rem;
+    }
+
+    h1 { font-size: clamp(2.9rem, 14vw, 4.8rem); }
+    .reader-note { padding-left: 1.1rem; }
+
+    .catalog-header { grid-template-columns: 1fr; gap: 0.65rem; }
+    .catalog-copy { display: block; }
+    .catalog-copy p { margin-top: 0.8rem; }
+
+    .feature-main { grid-template-columns: 1fr; padding: 2rem 1.5rem 2.5rem; }
+    .slide-object { min-height: 15rem; order: -1; }
+    .slide-object::before { margin-bottom: 3rem; }
+
+    .companion {
+      grid-template-columns: 1fr;
+      gap: 0.55rem;
+      align-items: start;
+      padding: 1.4rem 1.5rem 1.6rem;
+    }
+
+    .site-footer { flex-direction: column; gap: 0.35rem; }
+  }
 
   @media (prefers-reduced-motion: reduce) {
-    a.deck { transition: none; }
-    a.deck:hover, a.deck:focus-visible { transform: none; }
-  }
-
-  .deck .title {
-    font-family: var(--display);
-    font-size: 1.28rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    margin: 0;
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-  }
-
-  .deck .title::after { content: "→"; color: var(--accent); font-weight: 400; }
-
-  .deck .desc { color: var(--ink-soft); font-size: 0.95rem; margin: 0.5rem 0 0; }
-
-  .deck .meta {
-    font-family: var(--mono);
-    font-size: 0.76rem;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-    margin: 0.75rem 0 0;
-    font-variant-numeric: tabular-nums;
-  }
-
-  footer {
-    margin-top: 3.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--line);
-    font-family: var(--mono);
-    font-size: 0.76rem;
-    letter-spacing: 0.05em;
-    color: var(--muted);
+    html { scroll-behavior: auto; }
+    .primary-action { transition: none; }
+    .primary-action:hover { transform: none; }
   }
 </style>
 </head>
 <body>
-  <div class="wrap">
+  <header class="site-header shell">
+    <a class="identity" href="./" aria-label="JohnShu 的公開技術簡報首頁">
+      <span class="identity-mark" aria-hidden="true">JS</span>
+      <span class="identity-text">JohnShu / Talks</span>
+    </a>
+    <p class="public-label">繁體中文 · 可公開分享</p>
+  </header>
 
-    <header>
-      <h1 class="who">胖胖</h1>
-      <p class="what">TVBS · Lab Team</p>
+  <main class="shell">
+    <section class="hero" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow">Public talks &amp; working notes</p>
+        <h1 id="page-title">把做過的系統，整理成可以帶走的方法。</h1>
+        <p class="hero-copy">這裡收錄我對外分享的技術簡報。主題不限定特定平台，而是把軟體工程、工具與流程中的實作經驗，整理成其他人也能借鑑的內容。</p>
+      </div>
+
+      <aside class="reader-note" aria-labelledby="reader-note-title">
+        <h2 id="reader-note-title">內容方向</h2>
+        <ul>
+          <li>軟體與產品開發的實作方法</li>
+          <li>工程流程、工具與自動化</li>
+          <li>從具體案例提煉出的設計判斷</li>
+        </ul>
+      </aside>
+    </section>
+
+    <header class="catalog-header">
+      <p class="catalog-kicker">Talk index</p>
+      <div class="catalog-copy">
+        <h2 id="talk-index-title">目前公開的簡報</h2>
+        <p>每份簡報各自保留主題與附帶資源；未來的新內容會繼續收錄在這裡。</p>
+      </div>
     </header>
 
-    <h2>簡報</h2>
+    <section class="deck-list" aria-labelledby="talk-index-title">
+      <article class="feature" aria-labelledby="deck-title">
+      <div class="feature-main">
+        <div>
+          <p class="feature-label">Flutter · CI/CD</p>
+          <h2 id="deck-title">Flutter App 的建置與發版流程設計</h2>
+          <p class="feature-description">從 tag-based 發版、版號與 build number，到 bundle id、Firebase 專案與 iOS 設定如何依環境產生。適合正在維護 Flutter、Android、iOS 或行動 CI 的開發者。</p>
+          <div class="actions">
+            <a class="primary-action" href="flutter-cicd/">開始看簡報</a>
+            <span class="deck-meta">32 張 · 方向鍵翻頁</span>
+          </div>
+        </div>
 
-    <ul>
-      <li>
-        <a class="deck" href="flutter-cicd/">
-          <p class="title">Flutter App 的建置與發版流程設計</p>
-          <p class="desc">tag-based 發版、版號與建置編號機制，以及 bundle id 與 Firebase 專案如何依環境自動長出不同的值。</p>
-          <p class="meta">2026-08 · 32 張</p>
-        </a>
-      </li>
-      <li>
-        <a class="deck" href="flutter-cicd/samples/">
-          <p class="title">script 樣本</p>
-          <p class="desc">上面那份簡報提到的 script 與設定檔，去識別化之後的樣本。只保證可讀，不保證可運行。</p>
-          <p class="meta">5 支 · 隨簡報附</p>
-        </a>
-      </li>
-    </ul>
+        <div class="slide-object" aria-hidden="true">
+          <strong>建置與發版流程設計</strong>
+          <span>01 / 32</span>
+        </div>
+      </div>
 
-    <footer>簡報內用方向鍵翻頁</footer>
+      <aside class="companion" aria-label="簡報附帶資源">
+        <p class="companion-label">隨簡報附上</p>
+        <p class="companion-copy">6 份去識別化的 script 與設定檔，供讀完簡報後對照實作；它們是輔助參考，不是另一份獨立內容。</p>
+        <a class="companion-link" href="flutter-cicd/samples/">查看實作樣本 →</a>
+      </aside>
+      </article>
+    </section>
+  </main>
 
-  </div>
+  <footer class="site-footer shell">
+    <span>JohnShu（胖胖）的公開簡報與技術整理</span>
+    <span>內容已去識別化，可對外閱讀</span>
+  </footer>
 </body>
 </html>
