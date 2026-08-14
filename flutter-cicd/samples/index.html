@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>script 樣本 · Flutter App 的建置與發版流程設計</title>
+<style>
+  :root {
+    --paper: #F6F7F9;
+    --card: #FFFFFF;
+    --ink: #131720;
+    --ink-soft: #39414F;
+    --muted: #5D6673;
+    --line: #DCE0E7;
+    --accent: #4A57C8;
+    --accent-soft: #EEF0FC;
+    --warn: #9A3412;
+
+    --display: "Avenir Next", Futura, "Segoe UI Variable Display", "Helvetica Neue", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, "JetBrains Mono", Consolas, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0E1219; --card: #161C26; --ink: #E9ECF2; --ink-soft: #BCC3D0;
+      --muted: #8A93A3; --line: #262E3B; --accent: #8E98F7; --accent-soft: #1C2138;
+      --warn: #F0A63E;
+    }
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "PingFang TC", "Noto Sans TC", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.55;
+  }
+
+  .wrap {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: clamp(2.5rem, 8vw, 5.5rem) clamp(1.25rem, 5vw, 2rem) 4rem;
+  }
+
+  header { border-bottom: 1px solid var(--line); padding-bottom: 1.75rem; }
+
+  .back {
+    font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.06em;
+    color: var(--muted); text-decoration: none;
+  }
+  .back:hover { color: var(--accent); }
+
+  h1 {
+    font-family: var(--display);
+    font-size: clamp(1.6rem, 4.5vw, 2.1rem);
+    font-weight: 600; letter-spacing: -0.02em;
+    margin: 0.8rem 0 0;
+  }
+
+  .lede { color: var(--ink-soft); margin: 0.9rem 0 0; }
+
+  .note {
+    border-left: 3px solid var(--warn);
+    background: var(--card);
+    padding: 0.9rem 1.1rem;
+    margin: 1.6rem 0 0;
+    font-size: 0.95rem;
+    color: var(--ink-soft);
+  }
+
+  h2 {
+    font-family: var(--mono);
+    font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--muted); font-weight: 600;
+    margin: 2.75rem 0 1rem;
+  }
+
+  ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+
+  a.file {
+    display: block;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 0.4rem;
+    padding: 1.1rem 1.3rem;
+    text-decoration: none; color: inherit;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  a.file:hover, a.file:focus-visible { border-color: var(--accent); background: var(--accent-soft); }
+  a.file:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+  .file .name { font-family: var(--mono); font-size: 0.95rem; font-weight: 600; margin: 0; }
+  .file .desc { color: var(--ink-soft); font-size: 0.92rem; margin: 0.45rem 0 0; }
+  .file .where {
+    font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.06em;
+    color: var(--muted); margin: 0.55rem 0 0;
+  }
+
+  p.tail { color: var(--ink-soft); font-size: 0.95rem; margin: 1.6rem 0 0; }
+
+  code { font-family: var(--mono); font-size: 0.9em; }
+
+  footer {
+    margin-top: 3.5rem; padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono); font-size: 0.76rem; letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <header>
+      <a class="back" href="../">← 回簡報</a>
+      <h1>script 樣本</h1>
+      <p class="lede">《Flutter App 的建置與發版流程設計》提到的幾支 script 與設定檔。</p>
+    </header>
+
+    <div class="note">
+      <strong>擷取自 2026-08-14 的內部版本，已去識別化</strong>——bundle id、app 名稱、後端網域與 Firebase 專案都換成了假值（<code>com.example.myapp</code> / <code>MyApp</code> / <code>example.com</code>）。<strong>只保證可讀，不保證可以直接執行</strong>：路徑、asset 名稱與 Firebase 設定檔都要換成你自己的。
+    </div>
+
+    <h2>檔案</h2>
+
+    <ul>
+      <li>
+        <a class="file" href="build_config-development.json">
+          <p class="name">build_config-development.json</p>
+          <p class="desc">一個環境一份的設定檔。上半是值，下半是路徑——這個環境的檔案在哪，由設定檔自己講。</p>
+          <p class="where">環境 / 單一入口</p>
+        </a>
+      </li>
+      <li>
+        <a class="file" href="generate_app_config.sh">
+          <p class="name">generate_app_config.sh</p>
+          <p class="desc">讀設定檔寫出 AppConfig.xcconfig，順便把 Firebase plist 複製到位。缺欄位就 exit 1，不回退到別的環境的值。</p>
+          <p class="where">環境 / iOS</p>
+        </a>
+      </li>
+      <li>
+        <a class="file" href="copy_launch_image.sh">
+          <p class="name">copy_launch_image.sh</p>
+          <p class="desc">掛成 Xcode 的 Run Script build phase，每次 build 把對應環境的啟動圖複製成固定名稱。</p>
+          <p class="where">環境 / iOS 的複製</p>
+        </a>
+      </li>
+      <li>
+        <a class="file" href="build.gradle.kts">
+          <p class="name">build.gradle.kts</p>
+          <p class="desc">節錄。dart-define 解析、environmentValue() 的 loud fail、copyGoogleServices task 與 sourceSets 疊加。</p>
+          <p class="where">環境 / Android</p>
+        </a>
+      </li>
+      <li>
+        <a class="file" href="build-number-action.yml">
+          <p class="name">build-number-action.yml</p>
+          <p class="desc">composite action：孤兒分支上的月計數器，含 push 被拒之後重新讀檔重算的重試迴圈。</p>
+          <p class="where">版本 / 狀態放哪</p>
+        </a>
+      </li>
+    </ul>
+
+    <p class="tail">
+      幾個看的時候值得注意的地方：<code>generate_app_config.sh</code> 的 <code>read_config()</code> 用 <code>jq has()</code> 判斷欄位存不存在，不是判斷值是不是空的——production 的 <code>APP_CONFIG_SUFFIX</code> 就是空字串，把空值當缺漏會讓正式版建不起來。<code>build.gradle.kts</code> 檔頭那份 fallback map 是備援，真值在 <code>build_config/&lt;env&gt;.json</code>，兩份會漂移，所以內部版有一支測試逐 key 比對它們，抄過去的話那支測試也要一起抄。<code>build-number-action.yml</code> 的重試迴圈裡，push 被拒之後是 fetch 完<strong>重新讀檔重算</strong>，不是沿用上一輪算出的數字——沿用會寫入過期值，發出重複的 build number。
+    </p>
+
+    <footer>去識別化基準：抽掉可對應到具體系統的字面值，保留公司與團隊署名</footer>
+
+  </div>
+</body>
+</html>

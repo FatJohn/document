@@ -1,0 +1,28 @@
+{
+  "_comment": "擷取自 2026-08-14 的內部版本，已去識別化。只保證可讀，不保證可直接執行。原檔名為 build_config/development.json，production.json 是同樣的欄位、不同的值。原檔另有一個第三方登入服務的 channel id 欄位，與這份簡報談的機制無關，已整個拿掉。",
+
+  "ENV": "development",
+  "ENABLE_DEVELOPER_LOGGER": true,
+  "LOG_LEVEL": "debug",
+  "API_BASE_URL": "https://api-dev.example.com",
+  "ASSETS_URL": "https://assets-dev.example.com",
+
+  "GIT_HASH": "dev-local",
+  "SENTRY_DSN": "",
+  "SENTRY_RELEASE": "",
+  "SENTRY_DIST": "",
+  "GOOGLE_SERVER_CLIENT_ID": "",
+
+  "APP_CONFIG_SUFFIX": ".dev",
+  "APP_CONFIG_NAME": "MyApp [DEV]",
+  "APP_CONFIG_ICON_NAME": "AppIcon-Dev",
+  "APP_CONFIG_LAUNCH_IMAGE": "LaunchImage-Dev",
+
+  "NOTIFICATION_CHANNEL_ID": "default_notification_channel",
+  "NOTIFICATION_CHANNEL_NAME": "Default Notifications",
+  "NOTIFICATION_CHANNEL_DESCRIPTION": "Notification channel for FCM messages [DEV]",
+
+  "ANDROID_FIREBASE_CONFIG_PATH": "android/app/config/dev/google-services.json",
+  "ANDROID_RES_DIR": "android/app/src/dev/res",
+  "IOS_FIREBASE_CONFIG_PATH": "ios/config/Dev/GoogleService-Info.plist"
+}

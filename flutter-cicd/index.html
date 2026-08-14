@@ -14,6 +14,7 @@
   :root {
     --u: min(1vw, 1.7778vh);
 
+    /* type scale — kept deliberately tight so dense slides never collide */
     --fs-h2: calc(var(--u) * 3.45);
     --fs-lede: calc(var(--u) * 1.68);
     --fs-list: calc(var(--u) * 1.58);
@@ -80,6 +81,8 @@
     min-height: 100vh;
   }
 
+  /* ---------- stage ---------- */
+
   .stage {
     position: relative; width: calc(var(--u) * 100); height: calc(var(--u) * 56.25);
     max-width: 100%; overflow: hidden;
@@ -96,6 +99,8 @@
   .slide[data-on="1"] { opacity: 1; visibility: visible; pointer-events: auto; }
 
   @media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
+
+  /* ---------- type ---------- */
 
   .eyebrow {
     font-family: var(--mono); font-size: var(--fs-eyebrow);
@@ -132,6 +137,8 @@
   .prod-t { color: var(--prod); }
   .acc-t { color: var(--accent); }
 
+  /* ---------- cover ---------- */
+
   .cover { justify-content: center; gap: calc(var(--u) * 2.2); }
 
   .cover h1 {
@@ -159,7 +166,10 @@
     letter-spacing: 0.06em; color: var(--muted);
   }
 
+  /* ---------- two-column compare: the deck's core motif ---------- */
+
   .compare { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 1.8); min-height: 0; }
+  .compare.tri { grid-template-columns: 1fr 1fr 1fr; }
 
   .pane {
     background: var(--card); border: 1px solid var(--line);
@@ -187,13 +197,16 @@
   .pane .row .k { font-family: var(--mono); font-size: var(--fs-rowk); color: var(--muted); letter-spacing: 0.05em; }
   .pane .row .v { font-family: var(--mono); font-size: var(--fs-rowv); color: var(--ink); word-break: break-all; line-height: 1.35; }
 
+  /* ---------- lists ---------- */
+
   ul.clean {
     list-style: none; margin: 0; padding: 0;
     display: flex; flex-direction: column; gap: calc(var(--u) * 0.9);
     font-size: var(--fs-list); line-height: 1.45; color: var(--ink-soft);
   }
 
-  /* absolute marker keeps each item a single normal text flow */
+  /* marker is absolutely positioned so the text stays one normal inline flow —
+     a flex li would turn each <strong> into its own item and break mid-sentence */
   ul.clean > li { position: relative; padding-left: calc(var(--u) * 1.9); }
 
   ul.clean > li::before {
@@ -221,6 +234,8 @@
     display: grid; place-items: center; font-weight: 600;
   }
 
+  /* ---------- tables ---------- */
+
   .tw { overflow: auto; min-height: 0; }
 
   table { width: 100%; border-collapse: collapse; font-size: var(--fs-table); font-variant-numeric: tabular-nums; }
@@ -242,6 +257,8 @@
   th.prod-h { color: var(--prod); }
   tbody tr:last-child td { border-bottom: none; }
 
+  /* ---------- code ---------- */
+
   .code {
     font-family: var(--mono); font-size: var(--fs-code); line-height: 1.5;
     background: var(--card); border: 1px solid var(--line);
@@ -251,12 +268,24 @@
     overflow-x: auto; white-space: pre; color: var(--ink); margin: 0;
   }
 
+  /* 密集頁收緊垂直間距，讓最後幾十 px 的內容不被捲軸吃掉 */
+  .slide.tight { gap: calc(var(--u) * 1.1); }
+  .slide.tight .body { gap: calc(var(--u) * 1); }
+
+  /* 密集頁用的縮排版：整頁塞不下時縮字級，不要讓內容被捲軸吃掉 */
+  .code.sm { font-size: calc(var(--u) * 1.14); line-height: 1.42; }
+  .code.xs { font-size: calc(var(--u) * 1.04); line-height: 1.4; }
+  .tw.sm table { font-size: calc(var(--u) * 1.18); }
+  .tw.sm th, .tw.sm td { padding: calc(var(--u) * 0.6) calc(var(--u) * 0.78); }
+
   .code.dev-b { border-left-color: var(--dev); }
   .code.prod-b { border-left-color: var(--prod); }
   .code .c { color: var(--muted); }
   .code .d { color: var(--dev); font-weight: 600; }
   .code .p { color: var(--prod); font-weight: 600; }
   .code .a { color: var(--accent); font-weight: 600; }
+
+  /* ---------- id demo: typography performs the concept ---------- */
 
   .idshow { display: flex; flex-direction: column; gap: calc(var(--u) * 2.2); align-items: center; padding: calc(var(--u) * 1) 0; }
 
@@ -277,6 +306,8 @@
   .idsuf.prod { color: var(--prod); border-bottom: 2px dashed var(--prod); }
   .idsuf.prod::after { color: var(--prod); }
 
+  /* ---------- callout ---------- */
+
   .note {
     border-left: calc(var(--u) * 0.3) solid var(--warn); background: var(--card);
     padding: calc(var(--u) * 1.1) calc(var(--u) * 1.4);
@@ -290,25 +321,28 @@
     margin-bottom: calc(var(--u) * 0.35);
   }
 
-  /* ---------- mermaid container: follows the theme ---------- */
+  /* ---------- diagram: fixed light ground keeps mermaid legible in both themes ---------- */
 
   .diagram {
     background: var(--card); border: 1px solid var(--line);
-    border-radius: calc(var(--u) * 0.45); padding: calc(var(--u) * 1.4);
+    border-radius: calc(var(--u) * 0.45); padding: calc(var(--u) * 1.2);
     display: grid; place-items: center; min-height: 0; flex: 1; overflow: auto;
   }
 
+  /* width:100% is load-bearing: .diagram is a centred grid, so without it the
+     item shrinks to fit-content and the SVG falls back to its 300px default */
   .diagram pre.mermaid {
     margin: 0; padding: 0; background: none; border: none;
     width: 100%; text-align: center;
+    /* 未渲染前先藏起來，避免原始語法一閃而過 */
     color: transparent;
   }
 
   .diagram pre.mermaid[data-processed] { color: inherit; }
-
   /* mermaid writes an inline max-width on the <svg>, so overriding needs !important.
-     width:100% scales the diagram up to fill the stage; the max-height cap stops
-     tall graphs from overflowing. Measured in-browser: 26u safe, 34u overflows. */
+     width:100% scales the diagram up to fill the stage instead of sitting at its
+     natural size; the max-height cap stops tall graphs (the job-dependency one)
+     from overflowing. Measured in-browser: 26u is safe, 34u overflows. */
   .diagram svg {
     max-width: none !important;
     width: 100%;
@@ -374,7 +408,7 @@
     :root { --u: 2.9vw; }
     .stage { height: auto; min-height: calc(var(--u) * 90); }
     .slide { position: relative; inset: auto; }
-    .compare { grid-template-columns: 1fr; }
+    .compare, .compare.tri { grid-template-columns: 1fr; }
     .chapter h2 { font-size: calc(var(--u) * 5); }
     .thanks h1 { font-size: calc(var(--u) * 7); }
     .corner { position: fixed; right: calc(var(--u) * 2); bottom: calc(var(--u) * 2); opacity: 1; }
@@ -385,10 +419,9 @@
 
   <div class="stage" id="stage">
 
-    <!-- 1 -->
-    <section class="slide cover" data-sec="Overview">
+    <section class="slide cover">
       <div class="eyebrow">Flutter · GitHub Actions · 自架 runner</div>
-      <h1>Flutter App 的<br>建置與發版流程設計</h1>
+      <h1>Flutter App 的建置與發版流程設計</h1>
       <p class="sub">版號怎麼決定、發版要點什麼，以及 bundle id 與 Firebase 專案如何依環境自動長出不同的值。</p>
       <div class="byline">
         <span class="who">胖胖</span>
@@ -396,54 +429,54 @@
       </div>
     </section>
 
-    <!-- 2 -->
-    <section class="slide" data-sec="Overview">
+    <section class="slide">
       <div class="eyebrow">Overview</div>
       <h2>兩條部署線</h2>
-      <p class="lede">整套流程的每個分歧，最後都能還原成一個問題：這是 staging 還是 main。分支決定環境，環境決定 bundle id、Firebase 專案與後端網域。兩條線各自獨立走完建置到派發。</p>
+      <p class="lede">整套流程的每個分歧，最後都能還原成一個問題：這是 staging 還是 main。分支決定環境，環境決定 bundle id、Firebase 專案與後端網域。</p>
       <div class="body">
         <div class="compare">
-          <div class="pane dev">
-            <h3>staging → development</h3>
-            <div class="row"><span class="k">tag</span><span class="v">dev1.4.2</span></div>
-            <div class="row"><span class="k">bundle id</span><span class="v">com.example.myapp<span class="dev-t">.dev</span></span></div>
-            <div class="row"><span class="k">firebase</span><span class="v">staging 專案</span></div>
-            <div class="row"><span class="k">產物</span><span class="v">APK + IPA</span></div>
-            <div class="row"><span class="k">派發</span><span class="v">App Distribution / TestFlight</span></div>
-          </div>
-          <div class="pane prod">
-            <h3>main → production</h3>
-            <div class="row"><span class="k">tag</span><span class="v">v1.4.2</span></div>
-            <div class="row"><span class="k">bundle id</span><span class="v">com.example.myapp</span></div>
-            <div class="row"><span class="k">firebase</span><span class="v">prod 專案</span></div>
-            <div class="row"><span class="k">產物</span><span class="v">APK + AAB + IPA</span></div>
-            <div class="row"><span class="k">派發</span><span class="v">App Distribution / TestFlight</span></div>
-          </div>
+        <div class="pane dev">
+        <h3>staging → development</h3>
+        <div class="row"><span class="k">tag</span><span class="v">dev1.4.2</span></div>
+        <div class="row"><span class="k">bundle id</span><span class="v">com.example.myapp<span class="dev-t">.dev</span></span></div>
+        <div class="row"><span class="k">firebase</span><span class="v">staging 專案</span></div>
+        <div class="row"><span class="k">產物</span><span class="v">APK + IPA</span></div>
+        <div class="row"><span class="k">派發</span><span class="v">App Distribution / TestFlight</span></div>
+        
         </div>
+        <div class="pane prod">
+        <h3>main → production</h3>
+        <div class="row"><span class="k">tag</span><span class="v">v1.4.2</span></div>
+        <div class="row"><span class="k">bundle id</span><span class="v">com.example.myapp</span></div>
+        <div class="row"><span class="k">firebase</span><span class="v">prod 專案</span></div>
+        <div class="row"><span class="k">產物</span><span class="v">APK + AAB + IPA</span></div>
+        <div class="row"><span class="k">派發</span><span class="v">App Distribution / TestFlight</span></div>
+        
+        </div>
+        </div>
+        <p class="lede wide">兩條線各自獨立走完建置到派發，唯一的差別是 production 會多建一個 AAB。<strong>沒有第三種組合</strong>，後面所有機制都建立在這個限制上。</p>
       </div>
     </section>
 
-    <!-- 3 -->
     <section class="slide chapter" data-sec="發版">
       <div class="chnum">Chapter 01</div>
       <h2>發版</h2>
-      <p class="chsub">從按下按鈕，到 App 出現在測試人員手機上，中間經過哪些關卡。</p>
+      <p class="chsub">要按哪幾個按鈕、誰在擋錯誤的發版、跑起來會經過哪些 job，以及那些 YAML 為什麼長那樣。</p>
     </section>
 
-    <!-- 4 -->
     <section class="slide" data-sec="發版">
       <div class="eyebrow">發版 / 主線</div>
       <h2>發版只要點幾次滑鼠</h2>
-      <p class="lede">全部在 GitHub Actions 介面上跑，不需要在本機下 <code>git tag</code>。第三步由 CI 自動開 PR，只剩 merge 要按。</p>
+      <p class="lede">全部在 GitHub Actions 介面上跑，不需要在本機下 <code>git tag</code>。第三步是自動發生的。</p>
       <div class="body">
         <div class="diagram">
-<pre class="mermaid">
+        <pre class="mermaid">
 graph LR
-  A["staging<br/>開發完成"] --> B["1 · 開<br/>staging → main PR"]
-  B --> C["review<br/>&amp; merge"]
-  C --> D["2 · 推<br/>production tag"]
-  D --> E["CI 建置並派發"]
-  D --> F["3 · 自動開<br/>bump staging PR"]
+  A["staging&lt;br/&gt;開發完成"] --&gt; B["1 · 開&lt;br/&gt;staging → main PR"]
+  B --&gt; C["review&lt;br/&gt;&amp;amp; merge"]
+  C --&gt; D["2 · 推&lt;br/&gt;production tag"]
+  D --&gt; E["CI 建置並派發"]
+  D --&gt; F["3 · 自動&lt;br/&gt;bump staging"]
   classDef manual stroke-width:2px
   class B,D manual
 </pre>
@@ -451,496 +484,800 @@ graph LR
       </div>
     </section>
 
-    <!-- 5 -->
+    <section class="slide" data-sec="發版">
+      <div class="eyebrow">發版 / workflow 對照</div>
+      <h2>四支手動 workflow，各管一件事</h2>
+      <div class="body">
+        <div class="tw">
+        <table>
+        <thead>
+        <tr>
+        <th>Actions 介面上的名字</th>
+        <th>跑在</th>
+        <th>做什麼</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td class="m">Release Dev: Push Dev Tag to Deploy</td>
+        <td class="m dev-t nw">staging</td>
+        <td>讀 pubspec 版號，建 <code>dev1.4.2</code> 並 push，觸發 dev 建置與派發</td>
+        </tr>
+        <tr>
+        <td class="m">Release Production: 1. Open Staging → Main PR</td>
+        <td class="m dev-t nw">staging</td>
+        <td>開一個 <code>Release 1.4.2</code> 的 staging → main PR</td>
+        </tr>
+        <tr>
+        <td class="m">Release Production: 2. Push Production Tag to Deploy</td>
+        <td class="m prod-t nw">main</td>
+        <td>建 <code>v1.4.2</code> 並 push，觸發 production 建置與派發</td>
+        </tr>
+        <tr>
+        <td class="m">Release Production: Bump Main For Hotfix</td>
+        <td class="m prod-t nw">main</td>
+        <td>hotfix 前先把 main 版號 PATCH +1，開 PR</td>
+        </tr>
+        </tbody>
+        </table>
+        </div>
+        <p class="lede wide">跑錯分支會直接失敗：每支第一步都檢查 <code>github.ref_name</code>，不符就 <code>exit 1</code>。</p>
+      </div>
+    </section>
+
     <section class="slide" data-sec="發版">
       <div class="eyebrow">發版 / 派發閘門</div>
       <h2>只有 tag 會派發，而且 tag 與分支必須配對</h2>
-      <p class="lede">推分支、開 PR、手動觸發都只跑測試與建置。一個專職的 job 是唯一的開關，它同時驗三件事。</p>
+      <p class="lede">推分支、開 PR、手動觸發都只跑測試與建置。<code>check-deployment-eligibility</code> 是唯一的開關，它看兩個條件。</p>
       <div class="body">
         <div class="compare">
-          <div class="pane neutral">
-            <h3>條件一 / tag 格式對</h3>
-            <p><span class="dev-t">dev</span> 線<br><code>^dev[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$</code></p>
-            <p><span class="prod-t">prod</span> 線<br><code>^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$</code></p>
-          </div>
-          <div class="pane neutral">
-            <h3>條件二 / tag 真的在那條線上</h3>
-            <p>用 <code>git merge-base --is-ancestor</code> 確認 tag 指向的 commit 是 <code>origin/staging</code>（或 <code>origin/main</code>）的祖先。</p>
-            <p>在 main 推 <code>dev</code> tag、或在 staging 推 <code>v</code> tag，會建置成功但<strong>跳過派發</strong>。</p>
-          </div>
+        <div class="pane neutral">
+        <h3>條件一 / tag 格式對</h3>
+        <div class="row"><span class="k"><span class="dev-t">dev</span> 線</span><span class="v">^dev[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$</span></div>
+        <div class="row"><span class="k"><span class="prod-t">prod</span> 線</span><span class="v">^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9]+)?$</span></div>
+        
         </div>
-        <pre class="code"><span class="c"># 前兩個條件都成立才輸出 should_deploy=true，兩個 deploy job 都掛這個條件</span>
+        <div class="pane neutral">
+        <h3>條件二 / tag 真的在那條線上</h3>
+        
+        <p>用 <code>git merge-base --is-ancestor</code> 確認 tag 指向的 commit 是 <code>origin/staging</code>（或 <code>origin/main</code>）的祖先。</p>
+        <p>在 main 推 <code>dev1.4.2</code>、或在 staging 推 <code>v1.4.2</code>，會建置成功但<strong>跳過派發</strong>。</p>
+        </div>
+        </div>
+        <pre class="code"><span class="c"># 兩個條件都成立才輸出 should_deploy=true，兩個 deploy job 都掛這個條件</span>
 if: needs.check-deployment-eligibility.outputs.should_deploy == 'true'</pre>
-        <div class="note">
-          <b>條件三：只提醒、不擋</b>
-          比對 tag 名與該 commit 的版號一不一致，擋「tag 指到很舊的 commit」與「bump 後忘了 merge 就打 tag」。<strong>目前刻意只 warning、不 fail</strong>：先當觀測器，確認沒誤判再當閘門。
+        <p class="lede wide">被跳過派發時會掛一條 <code>::warning::</code> 說明原因，不會只留一個容易誤讀成「已部署」的灰色 skipped。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="發版">
+      <div class="eyebrow">發版 / 重發</div>
+      <h2>同版本再發一次，後綴從 -2 開始</h2>
+      <p class="lede">送審被打回、上傳到一半掛掉，都要同版本再發一次。這時候<strong>版本號不該動</strong>——動了會讓使用者看到一個不存在的版本。</p>
+      <div class="body">
+        <pre class="code">v1.4.2      第一次發
+v1.4.2<span class="a">-2</span>    同一個版本，第二次發
+v1.4.2<span class="a">-3</span>    第三次</pre>
+        <p class="lede wide">tag regex 從一開始就把 <code>(-[0-9]+)?</code> 算進去，所以重發的 tag 一樣通過派發閘門。<strong>後綴數字對齊「第 N 次」的口語，所以沒有 -1</strong>。版號不變，但 build number 會遞增，TestFlight 與 App Distribution 都視為新的建置。</p>
+      </div>
+    </section>
+
+    <section class="slide tight" data-sec="發版">
+      <div class="eyebrow">發版 / 兩份檔案</div>
+      <h2>兩條 CI 線的 workflow 長這樣</h2>
+      <p class="lede">觸發條件的差別只有三個地方。底下十個 job 的兩百多行，兩條線幾乎逐字相同。</p>
+      <div class="body">
+        <div class="compare">
+        <div class="pane dev">
+        <h3>ci-development.yml</h3>
+        
+        <pre class="code xs">name: "CI: Development"
+on:
+  push:
+    branches: [<span class="a">staging</span>]
+    tags: ["<span class="a">dev</span>[0-9]*.[0-9]*.[0-9]*"]
+  pull_request:
+    branches: [<span class="a">staging</span>]
+concurrency:
+  cancel-in-progress: <span class="a">true</span>
+jobs:
+  test: ...
+  ci-scripts: ...
+  gradle-config: ...
+  resolve-version: ...
+  check-deployment-eligibility: ...
+  generate-build-number: ...
+  build-android: ...
+  build-ios: ...
+  deploy-firebase: ...
+  deploy-testflight: ...</pre>
+        </div>
+        <div class="pane prod">
+        <h3>ci-production.yml</h3>
+        
+        <pre class="code xs">name: "CI: Production"
+on:
+  push:
+    branches: [<span class="a">main</span>]
+    tags: ["<span class="a">v</span>[0-9]*.[0-9]*.[0-9]*"]
+  pull_request:
+    branches: [<span class="a">main</span>]
+concurrency:
+  cancel-in-progress: <span class="a">false</span>
+jobs:
+  test: ...
+  ci-scripts: ...
+  gradle-config: ...
+  resolve-version: ...
+  check-deployment-eligibility: ...
+  generate-build-number: ...
+  build-android: ...
+  build-ios: ...
+  deploy-firebase: ...
+  deploy-testflight: ...</pre>
+        </div>
         </div>
       </div>
     </section>
 
-    <!-- 6 -->
-    <section class="slide" data-sec="發版">
+    <section class="slide tight" data-sec="發版">
       <div class="eyebrow">發版 / 流程</div>
       <h2>一次建置跑過的 job</h2>
+      <p class="lede">上一頁那十個 job 跑起來是這樣。兩條線的結構一樣，只有環境參數不同。</p>
       <div class="body">
         <div class="diagram">
-<pre class="mermaid">
-graph TB
-  T["test"] --> B["build-android · build-ios<br/>平行建置"]
-  V["resolve-version"] --> B
-  E["check-deployment-eligibility"] --> N["generate-build-number"]
-  E --> B
-  N --> B
-  B --> D["deploy-firebase · deploy-testflight<br/>只有 tag 會走到這層"]
-  classDef gate stroke-dasharray:4 3,stroke-width:2px
-  class E gate
+        <pre class="mermaid">
+graph LR
+  A["check&lt;br/&gt;eligibility"] --&gt; B["generate&lt;br/&gt;build-number"]
+  B --&gt; C["build&lt;br/&gt;android"]
+  B --&gt; D["build&lt;br/&gt;ios"]
+  C --&gt; E["deploy&lt;br/&gt;android"]
+  D --&gt; F["deploy&lt;br/&gt;ios"]
+  G["test / ci-scripts&lt;br/&gt;gradle-config"] --&gt; C
+  G --&gt; D
 </pre>
         </div>
         <ul class="clean">
-          <li>測試、讀版號、判斷派發資格三個平行起跑</li>
-          <li>產生 build number 要等閘門結果，才知道這次算不算正式建置</li>
-          <li>Android 與 iOS 平行建置，各自派發到 App Distribution 與 TestFlight；同平台的兩個建置則互斥，一台 builder 一次只跑一個</li>
+          <li><code>test</code>、<code>ci-scripts</code>、<code>gradle-config</code>、<code>resolve-version</code>、<code>check-deployment-eligibility</code> <strong>五個平行起跑</strong></li>
+          <li><code>generate-build-number</code> 要等閘門結果，才知道這次算不算正式建置；之後 Android 與 iOS 平行建置、各自派發</li>
+          <li><code>gradle-config</code> <strong>不被任何 job <code>needs</code></strong>：它不擋別人，但自己紅了整條 run 就是紅的</li>
         </ul>
       </div>
     </section>
 
-    <!-- 7 -->
-    <section class="slide" data-sec="發版">
-      <div class="eyebrow">發版 / 結構</div>
+    <section class="slide tight" data-sec="發版">
+      <div class="eyebrow">發版 / 重複的處理</div>
       <h2>重複的步驟都抽成 composite action</h2>
-      <p class="lede">兩條 CI 線共用同一組 action，環境差異只用 inputs 表達，所以流程只有一份。</p>
+      <p class="lede">兩條線共用同一組 action，環境差異只用 <code>inputs</code> 表達，所以流程只有一份。</p>
       <div class="body">
         <div class="tw">
-          <table>
-            <thead>
-              <tr><th>建置與派發用的 composite action</th><th>做什麼</th><th>關鍵 inputs</th></tr>
-            </thead>
-            <tbody>
-              <tr><td class="m nw">test</td><td>拉 submodule、codegen、格式檢查、靜態分析、單元測試</td><td class="m">—</td></tr>
-              <tr><td class="m nw">build-number</td><td>產生建置編號</td><td class="m">environment, persist</td></tr>
-              <tr><td class="m nw">build-android</td><td>建 APK，需要時建 AAB</td><td class="m">environment, build_aab</td></tr>
-              <tr><td class="m nw">build-ios</td><td>簽章並建 IPA</td><td class="m">environment, 憑證</td></tr>
-              <tr><td class="m nw">deploy-firebase</td><td>APK 上 App Distribution</td><td class="m">environment, artifact_name</td></tr>
-              <tr><td class="m nw">deploy-testflight</td><td>IPA 上 TestFlight</td><td class="m">environment, artifact_name</td></tr>
-              <tr><td class="m nw">setup-submodules</td><td>用 deploy key 拉私有 submodule</td><td class="m">deploy-key</td></tr>
-              <tr><td class="m nw">cleanup-ssh</td><td>收尾清掉 SSH key</td><td class="m">—</td></tr>
-            </tbody>
-          </table>
+        <table>
+        <thead>
+        <tr>
+        <th>.github/actions/</th>
+        <th>被誰用</th>
+        <th>關鍵 inputs</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td class="m">setup-submodules</td>
+        <td>test / gradle-config / build-android / build-ios</td>
+        <td class="m">deploy-key</td>
+        </tr>
+        <tr>
+        <td class="m">cleanup-ssh</td>
+        <td>同上，收尾用</td>
+        <td class="m">—</td>
+        </tr>
+        <tr>
+        <td class="m">build-number</td>
+        <td>兩條 CI 線</td>
+        <td class="m">environment, persist</td>
+        </tr>
+        <tr>
+        <td class="m">build-android</td>
+        <td>兩條 CI 線</td>
+        <td class="m">environment, build_aab, 簽章</td>
+        </tr>
+        <tr>
+        <td class="m">build-ios</td>
+        <td>兩條 CI 線</td>
+        <td class="m">environment, 簽章, dSYM</td>
+        </tr>
+        <tr>
+        <td class="m">deploy-firebase</td>
+        <td>兩條 CI 線</td>
+        <td class="m">environment, artifact_name</td>
+        </tr>
+        <tr>
+        <td class="m">deploy-testflight</td>
+        <td>兩條 CI 線</td>
+        <td class="m">environment, artifact_name</td>
+        </tr>
+        </tbody>
+        </table>
         </div>
-        <p class="lede wide">action 之間也能疊：三個 action 開頭都先呼叫 <code>setup-submodules</code>，結尾呼叫 <code>cleanup-ssh</code>。</p>
+        <div class="note">
+          <b>抽出來還有一個不是為了 DRY 的理由</b>
+          Actions 頁面左邊那排會列出 repo 裡<strong>所有的 workflow</strong>。這些步驟本來各自是一支 workflow，那排長到要找「我要點哪一支發版」都得先掃一遍。放進 <code>.github/actions/</code> 之後它們不再出現在那排，<strong>左邊只剩下真的需要人去點的那幾支</strong>。
+        </div>
       </div>
     </section>
 
-    <!-- 8 -->
+    <section class="slide" data-sec="發版">
+      <div class="eyebrow">發版 / 身分</div>
+      <h2>PR 上那些機器人是誰</h2>
+      <p class="lede">自動開的 PR 與 commit 都掛在 <code>github-actions[bot]</code> 名下。要讓 commit 正確歸戶，email 必須用那個 bot 帳號的 user id 加 GitHub 的 noreply 格式。</p>
+      <div class="body">
+        <pre class="code sm">- name: Configure Git
+  run: |
+    git config user.name  "github-actions[bot]"
+    git config user.email "<span class="a">41898282</span>+github-actions[bot]@users.noreply.github.com"
+
+<span class="c"># 用 create-pull-request 的話，改成直接指定 committer / author</span>
+- uses: peter-evans/create-pull-request@v8
+  with:
+    token: ${{ secrets.<span class="a">GITHUB_TOKEN</span> }}
+    committer: github-actions[bot] &lt;41898282+github-actions[bot]@users.noreply.github.com&gt;
+    author:    github-actions[bot] &lt;41898282+github-actions[bot]@users.noreply.github.com&gt;</pre>
+        <p class="lede wide"><code>41898282</code> 是 <code>github-actions[bot]</code> 這個帳號的 user id，寫錯或省略的話 commit 會變成無主的、頭像是灰的。這幾支用預設的 <code>GITHUB_TOKEN</code> 就夠——它們只要開 PR 給人看。</p>
+      </div>
+    </section>
+
     <section class="slide" data-sec="發版">
       <div class="eyebrow">發版 / token</div>
       <h2>為什麼推 tag 需要 App token</h2>
+      <p class="lede">GitHub 有一條防遞迴的規則：<strong>用內建 <code>GITHUB_TOKEN</code> 推上去的 ref，不會觸發任何 workflow</strong>。所以用預設 token 推 tag，tag 會成功推上去、但 CI 完全不動，而且沒有任何錯誤訊息。</p>
       <div class="body">
-        <div class="tw">
-          <table>
-            <tbody>
-              <tr>
-                <td class="m acc-t nw">目的</td>
-                <td>用內建 <code>GITHUB_TOKEN</code> 推的 ref <strong>不會觸發任何 workflow</strong>，這是 GitHub 的防遞迴規則。tag 推上去卻叫不動 CI，發版就斷在那裡。</td>
-              </tr>
-              <tr>
-                <td class="m acc-t nw">做法</td>
-                <td>用 GitHub App 的 Client ID 與 private key 簽出 installation token，有效一小時、job 結束自動撤銷，再用它 checkout 與 push tag。</td>
-              </tr>
-              <tr>
-                <td class="m acc-t nw">不用個人 PAT</td>
-                <td>PAT 綁人、會過期、人離職就壞，而且在 PR 上看起來像那個人做的。</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="compare">
+        <div class="pane prod">
+        <h3>推 tag 的兩支</h3>
+        
+        <p>用 GitHub App 簽出 installation token，有效一小時、job 結束自動撤銷。</p>
+        <p>在 tag 列表上看得出「這是 release 流程推的」，不是某個人手推的。</p>
         </div>
-        <pre class="code">- uses: actions/create-github-app-token@v3
-  id: app-token
-  with:
-    client-id: ${{ secrets.MY_APP_CLIENT_ID }}
-    private-key: ${{ secrets.MY_APP_PRIVATE_KEY }}
-
-- uses: actions/checkout@v6
-  with:
-    token: ${{ steps.app-token.outputs.token }}   <span class="c"># 用它推的 tag 才會觸發 CI</span></pre>
-        <p class="lede wide">對照：開 PR 的那幾支 workflow 用 <code>GITHUB_TOKEN</code> 就夠。副作用剛好合理：自動 PR 不會自己跑 CI，等人 merge 才跑。</p>
+        <div class="pane dev">
+        <h3>其餘（bump / sync / 開 PR）</h3>
+        
+        <p>預設 <code>GITHUB_TOKEN</code> 就夠。</p>
+        <p>副作用剛好合理：<strong>自動開的 PR 不會自己跑 CI</strong>，等人 merge 才跑。</p>
+        </div>
+        </div>
+        <p class="lede wide">為什麼不用個人 PAT：綁人、會過期、人離職就壞掉，而且在 PR 上看起來像是那個人做的。</p>
       </div>
     </section>
 
-    <!-- 9 -->
     <section class="slide chapter" data-sec="版本">
       <div class="chnum">Chapter 02</div>
       <h2>版本</h2>
-      <p class="chsub">一次建置的身分是三個數字：版號、tag、建置編號。誰決定它們，以及為什麼是這個格式。</p>
+      <p class="chsub">兩個數字：一個給人看的版號，一個給商店看的 build number。誰決定它們、在哪個 CI 步驟被算出來。</p>
     </section>
 
-    <!-- 10 -->
     <section class="slide" data-sec="版本">
-      <div class="eyebrow">版本 / 全貌</div>
-      <h2>一次建置的身分由三個數字組成</h2>
+      <div class="eyebrow">版本 / 版號</div>
+      <h2>版號：人決定前兩碼，CI 只動 patch</h2>
+      <p class="lede">版號的唯一來源是 <code>pubspec.yaml</code> 的 <code>version:</code>，CI 對它<strong>不做任何轉換</strong>——dev 與 prod 讀的是同一個欄位，差別只在 tag 前綴。</p>
       <div class="body">
+        <pre class="code"><span class="c"># pubspec.yaml</span>
+version: <span class="a">MAJOR</span>.<span class="a">MINOR</span>.<span class="a">PATCH</span>+<span class="a">BUILD</span>      <span class="c"># 例：1.4.2+1</span></pre>
         <div class="tw">
-          <table>
-            <thead>
-              <tr><th>數字</th><th>從哪來</th><th>誰決定</th><th>例</th></tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td class="m acc-t nw">version name</td>
-                <td class="m">pubspec.yaml 的 <code>version:</code></td>
-                <td>人，或 bump workflow 自動 PATCH +1</td>
-                <td class="m nw">1.4.2</td>
-              </tr>
-              <tr>
-                <td class="m acc-t nw">tag</td>
-                <td class="m">push tag workflow 依版號推算</td>
-                <td>workflow 自動命名</td>
-                <td class="m nw">v1.4.2</td>
-              </tr>
-              <tr>
-                <td class="m acc-t nw">build number</td>
-                <td class="m">獨立分支上的月計數器</td>
-                <td>CI 自動遞增</td>
-                <td class="m nw">260700015</td>
-              </tr>
-            </tbody>
-          </table>
+        <table>
+        <thead>
+        <tr>
+        <th>這個數字</th>
+        <th>誰決定</th>
+        <th>怎麼產生</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td class="m">MAJOR . MINOR</td>
+        <td class="nw">人</td>
+        <td class="nw">破壞性改動或加了功能，自己改 <code>pubspec.yaml</code></td>
+        </tr>
+        <tr>
+        <td class="m">PATCH</td>
+        <td class="nw">CI</td>
+        <td class="nw">三支 bump workflow 各自 +1，<strong>只開 PR、不直接 push</strong></td>
+        </tr>
+        <tr>
+        <td class="m">tag <code>v1.4.2</code></td>
+        <td class="nw">CI</td>
+        <td class="nw">從版號推導，由 push tag 那支 workflow 建出來</td>
+        </tr>
+        <tr>
+        <td class="m">BUILD</td>
+        <td class="nw">CI</td>
+        <td class="nw"><code>generate-build-number</code> job 的產物，下一頁講</td>
+        </tr>
+        </tbody>
+        </table>
         </div>
-        <p class="lede wide">CI 不對版號做任何轉換：兩條線讀<strong>同一個</strong> <code>pubspec.yaml</code> 欄位，差別只在 tag 前綴。產物名稱把三者組起來，尾綴是 <code>github.ref_name</code>（推 tag 時就是 tag 名）。</p>
-        <pre class="code">myapp-<span class="a">1.4.2</span>+<span class="a">260700015</span>-<span class="a">v1.4.2</span>.apk</pre>
+        <p class="lede wide"><code>resolve-version</code> 這個 job 做的就是把 <code>pubspec.yaml</code> 的 <code>version:</code> 讀出來，後面每一步用的都是它。</p>
       </div>
     </section>
 
-    <!-- 11 -->
     <section class="slide" data-sec="版本">
-      <div class="eyebrow">版本 / tag 命名</div>
-      <h2>同版本再發一次，後綴從 -2 開始</h2>
-      <p class="lede">workflow 會先列出遠端所有符合的 tag，算出這是第幾次發版，再決定 tag 名。後綴數字對齊「第 N 次」的口語，所以沒有 -1。</p>
+      <div class="eyebrow">版本 / build number</div>
+      <h2>build number：年月加當月流水號，九位數</h2>
+      <p class="lede">build number 只有一個硬性要求：<strong>單調遞增</strong>。這是 <code>generate-build-number</code> job 的產物。</p>
       <div class="body">
-        <pre class="code"><span class="c"># 版號停在 1.4.2，重複跑同一支 workflow</span>
-第 1 次   <span class="a">v1.4.2</span>      <span class="c">← 純版號，base tag</span>
-第 2 次   <span class="a">v1.4.2-2</span>
-第 3 次   <span class="a">v1.4.2-3</span>
-
-<span class="c"># 判斷方式：列出遠端 tag，找出最大的 -N</span>
-git ls-remote --tags origin "refs/tags/$BASE_TAG*"</pre>
+        <pre class="code"><span class="a">260700015</span>   =   <span class="a">26</span> 年後兩碼   ·   <span class="a">07</span> 月份   ·   <span class="a">00015</span> 當月第幾次，五位</pre>
+        <div class="tw">
+        <table>
+        <thead>
+        <tr>
+        <th>什麼情況</th>
+        <th>號碼從哪來</th>
+        <th>會不會動計數器</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td class="nw">推 <code>dev*</code> / <code>v*</code> tag（真的要發版）</td>
+        <td class="nw">build-metadata 分支上的月計數器</td>
+        <td class="nw"><strong>會</strong>，+1 並寫回</td>
+        </tr>
+        <tr>
+        <td class="nw">PR、推分支、手動觸發</td>
+        <td class="m nw"><code>GITHUB_RUN_NUMBER</code> 取五位</td>
+        <td class="nw"><strong>不會</strong>，完全不碰</td>
+        </tr>
+        </tbody>
+        </table>
+        </div>
         <ul class="clean">
-          <li>版號不變，但 build number 會遞增，所以 TestFlight 與 App Distribution 都視為新的建置</li>
-          <li><span class="dev-t">dev 線</span>直接重跑即可，沒有額外關卡</li>
-          <li><span class="prod-t">prod 線</span>base tag 已存在時會直接失敗，除非明確勾選確認重發</li>
+          <li>年月放前面可以保證跨月跨年都遞增（<code>2701</code> 一定大於 <code>2612</code>），而流水號每月歸零、每個環境各自計數，數字不會無限長大</li>
+          <li>九位數的上限是 <code>991299999</code>，Android <code>versionCode</code> 的上限是 21 億——<strong>可以用到 2099 年</strong></li>
+          <li>PR 那條不消耗計數器，所以<strong>計數器上的數字等於真正發出去的次數</strong></li>
         </ul>
       </div>
     </section>
 
-    <!-- 12 -->
     <section class="slide" data-sec="版本">
-      <div class="eyebrow">版本 / build number</div>
-      <h2>年月加當月流水號，九位數</h2>
+      <div class="eyebrow">版本 / 狀態放哪</div>
+      <h2>兩種號碼來源長什麼樣</h2>
+      <p class="lede">「每個月第幾次」是必須跨 build 保存的狀態，而 CI 是無狀態的。我們把它存在 repo 自己身上：一個叫 <code>build-metadata</code> 的孤兒分支，裡面沒有任何程式碼，只有一個 JSON。</p>
       <div class="body">
-        <div class="idshow">
-          <div class="idline">
-            <span class="idsuf dev" data-note="年">26</span><span class="idsuf prod" data-note="月">07</span><span class="idbase">00015</span>
-          </div>
-          <p class="lede" style="text-align:center">2026 年 7 月的第 15 次正式建置</p>
-        </div>
-        <div class="compare">
-          <div class="pane neutral">
-            <h3>為什麼這樣切</h3>
-            <p>年月在前，保證跨月與跨年都遞增（<code>2701</code>… &gt; <code>2612</code>…），商店只接受遞增的 build number。</p>
-            <p>每月從 1 重新計數，人眼能直接讀出這個建置是哪個月出的。</p>
-          </div>
-          <div class="pane neutral">
-            <h3>為什麼是九位</h3>
-            <p>Android 的 <code>versionCode</code> 上限是 <code>2100000000</code>。九位數最大 <code>991299999</code>，永遠不會撞到天花板。</p>
-            <p>也就是這個格式可以一路用到 2099 年都不需要換算法。</p>
-          </div>
-        </div>
+        <pre class="code">// build-metadata 分支上唯一的檔案：build-history.json
+{
+  "development": { "2026-06": 42, "2026-07": <span class="a">15</span> },
+  "production":  { "2026-06":  3, "2026-07":  <span class="a">2</span> }
+}</pre>
+        <ul class="clean">
+          <li>每次遞增就 append 一個 commit，不 amend、不 force——<strong>那條歷史本身就是 build number 的發放紀錄</strong>，想查哪個號碼什麼時候發的直接 <code>git log</code></li>
+          <li>PR 那條走 <code>GITHUB_RUN_NUMBER</code>，那是 GitHub 給每個 run 的流水號，取五位就好，<strong>完全不碰這個分支</strong></li>
+          <li>為什麼不用 Actions cache 或 artifact 存狀態：兩者都會過期，而版號的狀態不能過期</li>
+        </ul>
       </div>
     </section>
 
-    <!-- 13 -->
-    <section class="slide" data-sec="版本">
-      <div class="eyebrow">版本 / 兩種建置</div>
-      <h2>發版建置與 PR 建置的號碼機制不同</h2>
-      <p class="lede">產生 build number 的 action 收一個 <code>persist</code> 參數，值直接來自派發閘門的結果，兩條路徑完全分開。</p>
-      <div class="body">
-        <div class="compare">
-          <div class="pane prod">
-            <h3>發版建置 / persist = true</h3>
-            <div class="row"><span class="k">觸發</span><span class="v">推 tag</span></div>
-            <div class="row"><span class="k">來源</span><span class="v">計數器 +1</span></div>
-            <div class="row"><span class="k">寫回</span><span class="v">會，更新計數器分支</span></div>
-            <div class="row"><span class="k">號碼</span><span class="v">YYMM + 補零計數<br>260700015</span></div>
-          </div>
-          <div class="pane dev">
-            <h3>PR / 分支 / 手動 / persist = false</h3>
-            <div class="row"><span class="k">觸發</span><span class="v">push 分支、開 PR、手動觸發</span></div>
-            <div class="row"><span class="k">來源</span><span class="v">GITHUB_RUN_NUMBER 取五位</span></div>
-            <div class="row"><span class="k">寫回</span><span class="v">不會，完全不碰計數器</span></div>
-            <div class="row"><span class="k">號碼</span><span class="v">YYMM + run number<br>只為讓建置跑得完</span></div>
-          </div>
-        </div>
-        <p class="lede wide">所以計數器的數字等於<strong>真正發出去的次數</strong>，PR 驗證跑幾百次都不會影響它。</p>
-      </div>
-    </section>
-
-    <!-- 14 -->
-    <section class="slide" data-sec="版本">
-      <div class="eyebrow">版本 / 計數器</div>
-      <h2>計數器存在一個孤兒分支上</h2>
-      <div class="body">
-        <pre class="code"><span class="c"># 這個分支與主線程式碼完全隔離，只放一個檔案</span>
-build-history.json
-{ "production": { "2026-07": 15 }, "development": { "2026-07": 8 } }
-
-<span class="c"># 每次遞增都 append 一個 commit，分支歷史就是發版歷史</span>
-git commit -m "Build counter: production 2026-07 = 15"
-git push origin build-metadata     <span class="c"># 被拒 → fetch → 重讀重算 → 再試，最多 3 次</span>
-                                   <span class="c"># 三次全敗就直接 fail，不發沒被記錄的號碼</span></pre>
-        <div class="note">
-          <b>兩層防護，以及一個反直覺的觀念</b>
-          第一層：呼叫端的 job 掛 <code>concurrency: { group: build-number-generator, cancel-in-progress: false }</code>，讓計數 job 互斥執行。第二層：push 仍被拒時 fetch 到最新狀態、<strong>重新讀檔重算</strong>再試——重算是關鍵，沿用上一輪算出的數字會寫入過期值，那比衝突本身更糟，會發出重複的號碼。<br>
-          ⚠️ GitHub 的 concurrency group <strong>不是佇列</strong>：同一 group 同時只保留一個 running ＋一個 pending，第三個 run 進場會把原本 pending 的那個取消掉。所以它只能防「同時寫入」，不保證「每個 run 都拿到號碼」——正確性其實來自第二層。
-        </div>
-      </div>
-    </section>
-
-    <!-- 15 -->
     <section class="slide chapter" data-sec="環境">
       <div class="chnum">Chapter 03</div>
       <h2>環境</h2>
-      <p class="chsub">同一份程式碼，怎麼長成兩個能同時裝在一台手機上的 app。</p>
+      <p class="chsub">一份設定檔怎麼一路長成 bundle id、app 名稱、icon、Firebase 專案與派發目標。</p>
     </section>
 
-    <!-- 16 -->
-    <section class="slide" data-sec="環境">
-      <div class="eyebrow">環境 / 入口</div>
-      <h2>所有環境差異都從一個 JSON 出發</h2>
-      <p class="lede">每個環境一份 JSON，是唯一的來源。CI 只做一件事：把對應那份餵給 Flutter。</p>
+    <section class="slide tight" data-sec="環境">
+      <div class="eyebrow">環境 / 單一入口</div>
+      <h2>環境設定就是這一份 JSON</h2>
+      <p class="lede">一個環境一份，<code>build_config/</code> 底下。上半是<strong>值</strong>，下半是<strong>路徑</strong>——這個環境的檔案在哪，由設定檔自己講，程式裡不出現 <code>dev</code>、<code>prod</code> 這種字面值。</p>
       <div class="body">
-        <pre class="code"><span class="c"># 建置前先注入建置身分，產出最終的 dart-define.json</span>
-GIT_HASH=$(git rev-parse --short HEAD)
-<span class="c"># 同時疊上 GIT_HASH 與 crash 回報用的 release／dist 標記</span>
-jq '. + {GIT_HASH: $git_hash, RELEASE: $release, DIST: $dist}' \
-   "$ORIGINAL_CONFIG" &gt; build_config/dart-define.json
+        <pre class="code xs">// build_config/development.json（production.json 是同樣的欄位、不同的值）
+{
+  "ENV": "development",
+  "API_BASE_URL": "https://api-dev.example.com",
+  "ASSETS_URL":   "https://assets-dev.example.com",
+  "LOG_LEVEL": "debug",
+  "ENABLE_DEVELOPER_LOGGER": true,
 
-flutter build apk --release <span class="a">--dart-define-from-file=build_config/dart-define.json</span> \
-  --build-name=1.4.2 --build-number=260700015</pre>
-        <ul class="clean">
-          <li>Dart 端讀得到這些值，<strong>Android 的 Gradle 也讀得到</strong>，所以 bundle id 與資源能跟著切</li>
-          <li>iOS 讀不到，需要另一支 script 轉成 xcconfig</li>
-          <li>最終產出的 <code>dart-define.json</code> 在 <code>.gitignore</code> 裡，它是產物不是設定</li>
-          <li>這一步是唯一把「建置身分」灌進 App 的地方——CI 端先算好 release 標記再交給它，所以線上 crash 報告能對回究竟是哪一次建置</li>
-        </ul>
+  "<span class="a">APP_CONFIG_SUFFIX</span>": ".dev",
+  "<span class="a">APP_CONFIG_NAME</span>": "MyApp [DEV]",
+  "<span class="a">APP_CONFIG_ICON_NAME</span>": "AppIcon-Dev",
+  "<span class="a">APP_CONFIG_LAUNCH_IMAGE</span>": "LaunchImage-Dev",
+  "NOTIFICATION_CHANNEL_ID": "default_notification_channel",
+
+  "<span class="a">ANDROID_FIREBASE_CONFIG_PATH</span>": "android/app/config/dev/google-services.json",
+  "<span class="a">ANDROID_RES_DIR</span>": "android/app/src/dev/res",
+  "<span class="a">IOS_FIREBASE_CONFIG_PATH</span>": "ios/config/Dev/GoogleService-Info.plist"
+}</pre>
+        <p class="lede wide">建置前會先跑一支 script 把它加工成 <code>dart-define.json</code>：合併 <code>.local</code> 覆寫、檢查必填欄位、抽出 Google 登入的 client ID。那份產物與 <code>*.local.json</code> 都在 <code>.gitignore</code> 裡——<strong>它們是產物不是設定</strong>。</p>
       </div>
     </section>
 
-    <!-- 17 -->
     <section class="slide" data-sec="環境">
       <div class="eyebrow">環境 / bundle id</div>
-      <h2>一個 base，一個後綴</h2>
-      <p class="lede">兩個平台的 bundle id 都不是各寫死一份，而是同一個 base 加上由環境決定的後綴。這也是兩個 app 能同時裝在一台機器上的原因。</p>
+      <h2>dev 跟正式版要能裝在同一台手機上</h2>
+      <p class="lede">所以兩個環境的 bundle id 必須不同。做法不是各寫死一整串，而是<strong>一個 base，一個由環境決定的後綴</strong>。</p>
       <div class="body">
         <div class="idshow">
-          <div class="idline small">
-            <span class="idbase">com.example.myapp</span><span class="idsuf dev" data-note="development">.dev</span>
-          </div>
-          <div class="idline small">
-            <span class="idbase">com.example.myapp</span><span class="idsuf prod" data-note="production：空字串">&nbsp;&nbsp;&nbsp;</span>
-          </div>
+          <div class="idline small"><span class="idbase">com.example.myapp</span><span class="idsuf dev" data-note="development">.dev</span></div>
+          <div class="idline small"><span class="idbase">com.example.myapp</span><span class="idsuf prod" data-note="production：空字串">&nbsp;&nbsp;&nbsp;</span></div>
         </div>
-        <p class="lede">後綴在兩個平台叫同一個名字 <code>APP_CONFIG_SUFFIX</code>，只是抵達的路徑不同。</p>
+        <p class="lede wide">對系統來說這是兩個不同的 app，可以同時安裝、各自有自己的資料。後綴就是上一頁那個 <code>APP_CONFIG_SUFFIX</code>，兩個平台共用同一個名字——但它們拿到這個值的路徑不一樣，接下來兩頁分別講。</p>
       </div>
     </section>
 
-    <!-- 18 -->
     <section class="slide" data-sec="環境">
-      <div class="eyebrow">環境 / 後綴怎麼到位</div>
-      <h2>Gradle 直接讀，Xcode 要人翻譯</h2>
+      <div class="eyebrow">環境 / Android</div>
+      <h2>Android 怎麼拿到這些值</h2>
+      <p class="lede">Gradle 解得開 dart-define，所以 Android 這條路最短：<strong>所有 key 一律進同一個 map</strong>，取值再經過一層檢查。</p>
       <div class="body">
-        <div class="compare">
-          <div class="pane dev">
-            <h3>Android / Gradle 讀 dart-defines</h3>
-            <pre class="code dev-b" style="font-size:calc(var(--u) * 1.16)"><span class="c">// build.gradle.kts：解 base64 找 ENV</span>
+        <pre class="code sm"><span class="c">// ① 解 base64，全部進 map。這裡不認識任何環境名稱</span>
 dartDefines.split(",").forEach { entry -&gt;
-  val decoded = String(
-    Base64.getDecoder().decode(entry))
-  <span class="c">// ENV=development → 設定整組變數</span>
-  <span class="c">// 未知 ENV → throw，不靜默沿用 dev</span>
+  val pair = decode(entry).split("=", limit = 2)
+  dartEnvironmentVariables[pair[0]] = pair[1]
 }
 
-defaultConfig {
-  applicationId = "com.example.myapp"
-  <span class="a">applicationIdSuffix</span> =
-    dartEnvironmentVariables["APP_CONFIG_SUFFIX"]
-}</pre>
-            <p>同一組變數也決定 app 名稱與通知頻道文字。</p>
-          </div>
-          <div class="pane prod">
-            <h3>iOS / script 產生 xcconfig</h3>
-            <pre class="code prod-b" style="font-size:calc(var(--u) * 1.16)"><span class="c"># script 寫出 xcconfig</span>
-cat &gt; ios/Flutter/AppConfig.xcconfig &lt;&lt;EOF
-APP_CONFIG_SUFFIX=<span class="p">.dev</span>
-APP_CONFIG_NAME=MyApp [DEV]
-EOF
+<span class="c">// ② 取值一律經過 environmentValue()，不直接讀 map</span>
+applicationId       = "com.example.myapp"
+<span class="a">applicationIdSuffix</span> = environmentValue("APP_CONFIG_SUFFIX", allowBlank = true)
 
-<span class="c"># pbxproj 裡寫的是變數，不是值</span>
-PRODUCT_BUNDLE_IDENTIFIER =
-  "com.example.myapp<span class="a">$(APP_CONFIG_SUFFIX)</span>"</pre>
-            <p>script 反過來從 pbxproj 抓 base id，只有一個真實來源。</p>
-          </div>
-        </div>
+<span class="c">// ③ 資源目錄不用複製，直接疊進來</span>
+sourceSets["main"].res.srcDirs(environmentPath("ANDROID_RES_DIR"))</pre>
+        <p class="lede wide">第 ② 行為什麼不直接讀 map：直接讀就會寫出 <code>?: "myapp"</code> 這種行內預設值，<strong>那會把「設定檔漏了一個 key」變成一個看起來很正常的 app 名稱</strong>，出貨之後才發現。同一組變數也決定 app 名稱與通知頻道文字。</p>
       </div>
     </section>
 
-    <!-- 19 -->
+    <section class="slide tight" data-sec="環境">
+      <div class="eyebrow">環境 / iOS</div>
+      <h2>iOS 怎麼拿到這些值</h2>
+      <p class="lede">Xcode 讀不到 dart-define，所以要多一支 script 把值翻譯成 xcconfig。關鍵是<strong>那份產出的檔案是怎麼被 build 讀到的</strong>。</p>
+      <div class="body">
+        <ol class="steps">
+          <li>值在 <code>build_config/development.json</code></li>
+          <li><code>generate_app_config.sh</code> 讀它，寫出 <code>ios/Flutter/AppConfig.xcconfig</code>——<strong>產物，在 <code>.gitignore</code> 裡</strong></li>
+          <li><code>Debug.xcconfig</code> 與 <code>Release.xcconfig</code> 各自 <code>#include</code> 它，而 Xcode 專案設定指到這兩份</li>
+        </ol>
+        <pre class="code sm"><span class="c"># Debug.xcconfig 與 Release.xcconfig 內容一樣，都是兩行</span>
+#include "Generated.xcconfig"     <span class="c"># Flutter 自己產的</span>
+#include "<span class="a">AppConfig.xcconfig</span>"     <span class="c"># 這條就是我們的值接進 build 的地方</span>
+
+<span class="c"># pbxproj 裡寫的是變數，不是值</span>
+PRODUCT_BUNDLE_IDENTIFIER = "com.example.myapp<span class="a">$(APP_CONFIG_SUFFIX)</span>"</pre>
+        <p class="lede wide">因為 Debug 與 Release 都 include 同一份，<strong>本機 debug run 跟 CI release build 走的是同一組值</strong>。</p>
+      </div>
+    </section>
+
     <section class="slide" data-sec="環境">
       <div class="eyebrow">環境 / 檔案就位</div>
       <h2>有些東西沒有變數可用，只能把檔案複製到位</h2>
-      <p class="lede wide">變數能解決的（bundle id、app 名稱、icon 名稱）就用變數。剩下的只能在建置前把對應檔案複製成固定檔名，讓下游工具讀到。</p>
+      <p class="lede">變數能解決的就用變數。剩下三個場合只能在建置前把檔案複製成<strong>固定的檔名</strong>，讓下游工具讀得到——因為那些工具寫死了要讀哪個路徑的哪個檔名，不吃任何變數。</p>
       <div class="body">
         <div class="tw">
-          <table>
-            <thead>
-              <tr><th>要換的東西</th><th>誰做</th><th>怎麼做</th></tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Android Firebase 設定</td>
-                <td class="m nw">Gradle task</td>
-                <td class="m">把 config/{dev,prod}/google-services.json 複製到 app 根目錄，掛在 google-services 處理之前</td>
-              </tr>
-              <tr>
-                <td>iOS Firebase 設定</td>
-                <td class="m nw">shell script</td>
-                <td class="m">把 config/{Dev,Prod}/GoogleService-Info.plist 複製到 Runner/</td>
-              </tr>
-              <tr>
-                <td>iOS Launch image</td>
-                <td class="m nw">Xcode build phase</td>
-                <td class="m">把 LaunchImage-{Dev,Prod}.imageset 複製成通用的 LaunchImage.imageset</td>
-              </tr>
-              <tr>
-                <td>Android App icon</td>
-                <td class="m nw">不用複製</td>
-                <td class="m">Gradle sourceSets 直接把 src/{dev,prod}/res 疊進 res.srcDirs</td>
-              </tr>
-            </tbody>
-          </table>
+        <table>
+        <thead>
+        <tr>
+        <th>要換的東西</th>
+        <th>誰做</th>
+        <th>來源由哪個欄位指定 → 複製到哪</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td>Android Firebase 設定</td>
+        <td class="m">Gradle task<br><code>copyGoogleServices</code></td>
+        <td class="m">ANDROID_FIREBASE_CONFIG_PATH<br>→ app/google-services.json</td>
+        </tr>
+        <tr>
+        <td>iOS Firebase 設定</td>
+        <td class="m">shell script<br><code>generate_app_config.sh</code></td>
+        <td class="m">IOS_FIREBASE_CONFIG_PATH<br>→ ios/Runner/GoogleService-Info.plist</td>
+        </tr>
+        <tr>
+        <td>iOS Launch image</td>
+        <td class="m">Xcode build phase<br><code>copy_launch_image.sh</code></td>
+        <td class="m">APP_CONFIG_LAUNCH_IMAGE（經 xcconfig）<br>→ Assets.xcassets/LaunchImage.imageset</td>
+        </tr>
+        <tr>
+        <td>Android app icon 與資源</td>
+        <td class="m"><strong>不用複製</strong><br>Gradle <code>sourceSets</code></td>
+        <td class="m">ANDROID_RES_DIR<br>→ 直接疊進 res.srcDirs</td>
+        </tr>
+        </tbody>
+        </table>
         </div>
-        <div class="note">
-          <b>Launch image 為什麼要多這一步</b>
-          <code>LaunchScreen.storyboard</code> 無法引用 xcconfig 變數，只能讓它固定引用 <code>LaunchImage</code>，再由 build phase 把對的圖搬進那個名字。
-        </div>
+        <p class="lede wide">前三個的<strong>目標</strong>檔案都在 <code>.gitignore</code> 裡——它們是建置產物，不是設定。最後一列是唯一不需要複製的，因為 Gradle 支援多來源目錄；iOS 沒有等價機制。</p>
       </div>
     </section>
 
-    <!-- 20 -->
     <section class="slide" data-sec="環境">
-      <div class="eyebrow">環境 / Firebase</div>
-      <h2>兩套獨立專案，靠 bundle id 對上</h2>
-      <p class="lede wide">兩個環境接的是兩個完全獨立的 Firebase 專案，資料、Crashlytics 與推播設定都分開。設定檔裡寫著「我是給哪個 bundle id 用的」，對不上就不給用。</p>
+      <div class="eyebrow">環境 / Android 的複製</div>
+      <h2>Android：一個 Gradle task，掛在 plugin 前面</h2>
       <div class="body">
-        <pre class="code">設定檔裡寫著  "package_name": "com.example.myapp<span class="d">.dev</span>"
-建置算出來的  applicationId + Suffix = "com.example.myapp<span class="d">.dev</span>"
-                                       <span class="a">↑ 必須一模一樣，否則 Android 直接建置失敗</span></pre>
-        <ul class="clean">
-          <li>要再加環境，架構撐得住：所有環境差異都收斂成「一個 <code>ENV</code> 值 ＋ 一組按環境命名的目錄」，照樣式新增就好</li>
-          <li>但有兩處分支要各補一個 case：Gradle 的 <code>when (ENV)</code> 與 iOS script 的 <code>case</code>，還要先去 Firebase Console 註冊新 bundle id 才拿得到設定檔</li>
-          <li><strong>漏改不會靜默出錯</strong>：兩處都設計成遇到未知環境直接 fail，不會沿用預設值建出一個看起來正常、實際上連到錯誤 Firebase 專案的 app</li>
-          <li>iOS 的 dSYM 上傳也吃這份設定檔，環境錯了符號會傳到另一個專案，線上當機就查不到來源</li>
-        </ul>
+        <pre class="code sm"><span class="c">// 路徑在 configuration 階段就取好：doLast 裡碰 project 或 file() 會讓這個</span>
+<span class="c">// task 與 configuration cache 不相容</span>
+tasks.register("copyGoogleServices") {
+  val sourceFile = <span class="a">environmentPath</span>("ANDROID_FIREBASE_CONFIG_PATH")
+  val targetFile = file("google-services.json")
+  doLast {
+    if (sourceFile.exists()) sourceFile.copyTo(targetFile, overwrite = true)
+    else throw GradleException(   <span class="c">// 找不到就炸，而且指名是哪個欄位指錯</span>
+      "google-services.json not found: $sourceFile (ANDROID_FIREBASE_CONFIG_PATH)")
+  }
+}
+
+tasks.whenTaskAdded {   <span class="c">// 掛在 Google Services plugin 前面，確保它讀到複製後的檔案</span>
+  if (name == "processDebugGoogleServices" || name == "processReleaseGoogleServices")
+    dependsOn("copyGoogleServices")
+}</pre>
+        <p class="lede wide">錯誤訊息要<strong>指名是哪個欄位指錯了</strong>。只說「檔案不存在」，下一個人得先翻 gradle 找出誰在讀它。</p>
       </div>
     </section>
 
-    <!-- 21 -->
-    <section class="slide chapter" data-sec="進階">
-      <div class="chnum">Chapter 04</div>
-      <h2>進階</h2>
-      <p class="chsub">推完 tag 之後自動發生的事、iOS 簽章怎麼不弄壞機器，以及可以帶走的設計原則。</p>
+    <section class="slide" data-sec="環境">
+      <div class="eyebrow">環境 / iOS 的複製</div>
+      <h2>iOS：一行 cp，加一個掛在 Xcode 上的 build phase</h2>
+      <p class="lede">這兩段複製發生在<strong>不同時機</strong>：Firebase 設定跟著產 xcconfig 的 script 一起跑，啟動圖則是 Xcode 每次 build 都跑。</p>
+      <div class="body">
+        <pre class="code sm"><span class="c"># ① generate_app_config.sh 裡面，跟 xcconfig 一起產。不存在就 exit 1</span>
+src="$PROJECT_ROOT/$IOS_FIREBASE_CONFIG_PATH"
+[ -f "$src" ] || { echo "error: not found: $src（來自 $CONFIG_FILE）" &gt;&amp;2; exit 1; }
+cp "$src" "$PROJECT_ROOT/ios/Runner/GoogleService-Info.plist"</pre>
+        <pre class="code sm"><span class="c"># ② copy_launch_image.sh 掛成 Xcode 的 Run Script build phase，每次 build 都跑</span>
+ASSETS_DIR="${SRCROOT}/Runner/Assets.xcassets"
+SOURCE="${ASSETS_DIR}/${<span class="a">APP_CONFIG_LAUNCH_IMAGE</span>}.imageset"   <span class="c"># 讀 xcconfig 變數</span>
+rm -rf "$TARGET" &amp;&amp; cp -R "$SOURCE" "${ASSETS_DIR}/LaunchImage.imageset"</pre>
+        <div class="note">
+          <b>啟動圖為什麼要多這一步</b>
+          因為 <code>LaunchScreen.storyboard</code> <strong>沒辦法引用 xcconfig 變數</strong>，裡面只能寫死一個圖片名稱。所以讓它固定引用 <code>LaunchImage</code>，我們在 build 之前把對的那份複製成那個名字。
+        </div>
+      </div>
     </section>
 
-    <!-- 22 -->
-    <section class="slide" data-sec="進階">
-      <div class="eyebrow">進階 / 分流</div>
-      <h2>推了 tag 之後，staging 會發生什麼</h2>
-      <p class="lede">兩支自動 workflow 監聽同一個 tag pattern，用兩個獨立問題把情境切成四種，彼此互斥。</p>
+    <section class="slide" data-sec="環境">
+      <div class="eyebrow">環境 / iOS 其餘變數</div>
+      <h2>一支 script 決定 iOS 的四個值</h2>
+      <p class="lede">這四個值不是寫在 script 裡，而是從 <code>build_config/&lt;env&gt;.json</code> <strong>逐欄位讀出來</strong>——跟 Android 讀的是同一份檔案。</p>
       <div class="body">
         <div class="tw">
-          <table>
-            <thead>
-              <tr><th>情境</th><th>tag</th><th>main 有新 commit</th><th>結果</th></tr>
-            </thead>
-            <tbody>
-              <tr><td class="nw">A 真 hotfix</td><td class="m nw">v1.4.3</td><td class="m nw">有</td><td>開 PR：把 main 併回 staging，並 bump 版號</td></tr>
-              <tr><td class="nw">B 重發加修正</td><td class="m nw">v1.4.2-2</td><td class="m nw">有</td><td>開 PR：只併回，不 bump</td></tr>
-              <tr><td class="nw">C 純重打包</td><td class="m nw">v1.4.2-2</td><td class="m nw">沒有</td><td>兩支都跳過</td></tr>
-              <tr><td class="nw">D 正常發版</td><td class="m nw">v1.4.3</td><td class="m nw">沒有</td><td>開 PR：只 bump staging 版號</td></tr>
-            </tbody>
-          </table>
+        <table>
+        <thead>
+        <tr>
+        <th>xcconfig 變數</th>
+        <th class="dev-h">development</th>
+        <th class="prod-h">production</th>
+        <th>誰在用</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td class="m">APP_CONFIG_SUFFIX</td>
+        <td class="m">.dev</td>
+        <td class="m">（空字串）</td>
+        <td class="m">PRODUCT_BUNDLE_IDENTIFIER</td>
+        </tr>
+        <tr>
+        <td class="m">APP_CONFIG_NAME</td>
+        <td class="m">MyApp [DEV]</td>
+        <td class="m">MyApp</td>
+        <td class="m">CFBundleDisplayName</td>
+        </tr>
+        <tr>
+        <td class="m">APP_CONFIG_ICON_NAME</td>
+        <td class="m">AppIcon-Dev</td>
+        <td class="m">AppIcon-Prod</td>
+        <td class="m">ASSETCATALOG_COMPILER_APPICON_NAME</td>
+        </tr>
+        <tr>
+        <td class="m">APP_CONFIG_LAUNCH_IMAGE</td>
+        <td class="m">LaunchImage-Dev</td>
+        <td class="m">LaunchImage-Prod</td>
+        <td class="m">copy_launch_image.sh</td>
+        </tr>
+        </tbody>
+        </table>
         </div>
-        <pre class="code"><span class="c"># 判斷用的兩個訊號</span>
-git rev-list --count origin/staging..origin/main --no-merges   <span class="c"># 要不要併回</span>
-[[ "$TAG" =~ -[0-9]+$ ]]                                       <span class="c"># 要不要 bump</span></pre>
-        <p class="lede wide">把「要不要併回」與「要不要 bump」拆成兩個獨立問題，是這段設計最關鍵的一步。四種情境就從兩個布林值自然長出來，不需要寫四條規則。</p>
+        <p class="lede wide">在 CI 裡它還會把算好的完整 bundle id 寫進 <code>GITHUB_ENV</code>，後面抓簽章憑證的步驟直接用那個值。</p>
         <div class="note">
-          <b>這個判定的前提，最後是用設定守住的</b>
-          <code>rev-list --count</code> 比對 commit SHA、不是內容，而 rebase 與 squash merge 都會重寫 SHA，正常發版就會被誤判成有 divergence。修法有兩條：以 patch-id 比對（<code>--cherry-pick --right-only</code>），或限制 merge 模式。我們選了後者，repo 設定與分支保護規則都只留 merge commit——<strong>與其讓 script 抵抗三種 merge 模式，不如讓其中兩種不存在</strong>。
+          <b>這是全場最需要記住的一件事</b>
+          <strong>iOS build 前忘記跑 <code>generate_app_config.sh</code>，不會有任何提示。</strong> 它就沿用上一次的 <code>AppConfig.xcconfig</code>——你昨天跑 dev、今天想跑 prod，build 出來的還是 dev。這個到現在沒有擋。
         </div>
       </div>
     </section>
 
-    <!-- 23 -->
-    <section class="slide" data-sec="進階">
-      <div class="eyebrow">進階 / iOS 簽章</div>
-      <h2>iOS 簽章走臨時 keychain</h2>
-      <p class="lede">自架 runner 的 keychain 是長期狀態，一旦被污染，之後所有 iOS 建置都會出問題，而且很難查。所以整個簽章流程都在臨時 keychain 裡完成。</p>
+    <section class="slide" data-sec="環境">
+      <div class="eyebrow">環境 / GitHub 設定</div>
+      <h2>用 environment 隔離同名的 variable 與 secret</h2>
+      <p class="lede">建置的差異來自 repo 裡的檔案，<strong>派發的差異來自 GitHub 的設定</strong>。兩條線的 deploy job 寫得一模一樣，只差 <code>environment:</code> 那一行。</p>
       <div class="body">
-        <pre class="code">keychain <span class="a">initialize --path "$KEYCHAIN"</span>   <span class="c"># 固定路徑，收尾才刪得精準</span>
-app-store-connect fetch-signing-files "$BUNDLE_ID" \      <span class="c"># 用算好的 bundle id 抓</span>
-  --platform IOS --type IOS_APP_STORE --certificate-key=@file:$CERT_KEY_PATH \
-  --strict-match-identifier --delete-stale-profiles --create
-keychain add-certificates --certificate "$RUNNER_TEMP/certificates/*.p12"
-xcode-project use-profiles --export-options-plist=$RUNNER_TEMP/export_options.plist
-flutter build ipa --release --export-options-plist=...
-keychain <span class="a">use-login</span>                        <span class="c"># if: always() —— 先還原 default</span>
-keychain <span class="a">delete --path "$KEYCHAIN"</span>        <span class="c"># if: always() —— 再刪，順序不能顛倒</span></pre>
+        <pre class="code sm"><span class="c"># 兩條線的 deploy job 逐字相同，只差 environment 那一行</span>
+deploy-firebase:
+  environment: <span class="a">development</span>      # ci-production.yml 寫的是 <span class="a">production</span>
+  steps:
+    - uses: ./.github/actions/deploy-firebase
+      with:
+        firebase_android_app_id:      ${{ vars.<span class="a">FIREBASE_ANDROID_APP_ID</span> }}
+        firebase_distribution_groups: ${{ vars.<span class="a">FIREBASE_DISTRIBUTION_GROUPS</span> }}</pre>
+        <p class="lede wide">在 GitHub 的 <strong>Settings → Environments</strong> 底下，<code>development</code> 與 <code>production</code> 各自有一組<strong>同名</strong>的 variable 與 secret，值不同。workflow 只寫名字、不寫值，GitHub 依 job 上那行 <code>environment:</code> 決定給哪一份。</p>
         <ul class="clean">
-          <li>還原與刪除都掛 <code>if: always()</code>；順序是 load-bearing——先還原 default 再刪，顛倒了機器就沒有 default keychain。刪除要帶 <code>--path</code>，不帶會刪到系統預設的那個</li>
-          <li>憑證與 private key 都寫在 <code>$RUNNER_TEMP</code>，收尾一併刪掉</li>
-          <li>這裡用的是 Codemagic CLI tools，它把 keychain 與憑證的處理包成幾個指令</li>
+          <li>好處是：要換測試群組、換 Firebase app，改 GitHub 設定就好，<strong>不用動 repo 也不用重新 review</strong></li>
+          <li>build job <strong>刻意不掛 <code>environment:</code></strong>——掛了會被 environment 的 branch policy 連 PR build 一起擋掉</li>
         </ul>
       </div>
     </section>
 
-    <!-- 24 -->
-    <section class="slide" data-sec="進階">
+    <section class="slide" data-sec="環境">
+      <div class="eyebrow">環境 / 對照</div>
+      <h2>同一件事，Android 原生有現成機制：flavor</h2>
+      <p class="lede"><code>productFlavors</code> 就是為「同一份程式碼、多個變體」設計的，Flutter 也支援 <code>--flavor dev</code>。我們沒用它，但值得知道它能吃掉多少我們現在手寫的東西。</p>
+      <div class="body">
+        <div class="tw">
+        <table>
+        <thead>
+        <tr>
+        <th>要換的東西</th>
+        <th class="dev-h">走 flavor</th>
+        <th class="prod-h">我們現在</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td>bundle id 後綴</td>
+        <td>flavor 直接宣告</td>
+        <td>設定檔 → dart-define → gradle</td>
+        </tr>
+        <tr>
+        <td>Firebase 設定</td>
+        <td class="nw">放 <code>src/&lt;flavor&gt;/</code>，plugin 自己挑</td>
+        <td class="nw">自己寫 copy task</td>
+        </tr>
+        <tr>
+        <td>icon 與資源</td>
+        <td class="nw"><code>src/&lt;flavor&gt;/res</code>，Gradle 自動疊加</td>
+        <td class="nw">設定檔指定目錄後疊加</td>
+        </tr>
+        <tr>
+        <td>一次建多個環境</td>
+        <td class="nw">一行指令</td>
+        <td class="nw">做不到</td>
+        </tr>
+        <tr>
+        <td><strong>漏設一個值</strong></td>
+        <td class="nw"><strong>安靜地拿 defaultConfig</strong></td>
+        <td class="nw"><strong>逐 key loud fail</strong></td>
+        </tr>
+        </tbody>
+        </table>
+        </div>
+        <p class="lede wide"><strong>Android 這一側單獨看，flavor 確實比我們現在的做法乾淨。</strong> 但最後一列是重點：flavor 沒有「值帶齊了沒」這個概念。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="環境">
+      <div class="eyebrow">環境 / 對照</div>
+      <h2>iOS 沒有 flavor，只有 scheme × configuration</h2>
+      <p class="lede">Xcode 根本沒有 flavor 這個概念。Flutter 的 <code>--flavor dev</code> 在 iOS 是去找一個<strong>同名的 scheme</strong>，而且要建立對應的 build configuration，各自 include 不同的 xcconfig。</p>
+      <div class="body">
+        <div class="compare">
+        <div class="pane dev">
+        <h3>換得掉的</h3>
+        
+        <p>bundle id、顯示名稱、icon 可以由 configuration 指到不同的 xcconfig。</p>
+        <p>切環境的體驗確實變好：Xcode scheme 選單直接切，不用先跑 script。</p>
+        <p>但<strong>值還是走 xcconfig 變數</strong>，跟我們現在一模一樣。</p>
+        </div>
+        <div class="pane prod">
+        <h3>換不掉的（前提：單 target）</h3>
+        
+        <p><code>GoogleService-Info.plist</code> 還是要 build phase script 依環境複製——這是社群通行做法，<strong>不是官方文件給的路</strong>。</p>
+        <p>官方教的是分多 target，或 runtime 用 <code>FirebaseOptions</code> 自己選。啟動圖同理。</p>
+        </div>
+        </div>
+        <p class="lede wide">代價是環境清單會散在 <code>project.pbxproj</code> 裡，那是 GUI 產生的檔案，<strong>diff 幾乎沒辦法 review</strong>。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="環境">
+      <div class="eyebrow">環境 / 取捨</div>
+      <h2>那為什麼這個專案沒走 flavor</h2>
+      <div class="body">
+        <div class="tw">
+        <table>
+        <thead>
+        <tr>
+        <th>比較項</th>
+        <th class="dev-h">我們現在</th>
+        <th class="prod-h">走 flavor</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td>值的來源</td>
+        <td class="nw">一份 JSON，Android／iOS／Dart 共用</td>
+        <td class="nw">Android 在 gradle、iOS 在 pbxproj，<br>Dart 端還是要另外 dart-define</td>
+        </tr>
+        <tr>
+        <td>新增環境</td>
+        <td class="nw">加一份 JSON 加目錄，不動程式碼</td>
+        <td class="nw">Gradle 加 flavor、Xcode 加 scheme<br>與 configuration</td>
+        </tr>
+        <tr>
+        <td>切換環境</td>
+        <td class="nw"><strong>要先跑 script，忘了會靜默沿用</strong></td>
+        <td class="nw">每次明示，體驗較好</td>
+        </tr>
+        <tr>
+        <td>一次出多環境</td>
+        <td class="nw"><strong>做不到</strong></td>
+        <td class="nw">一行指令</td>
+        </tr>
+        <tr>
+        <td>漏設定</td>
+        <td class="nw">逐 key loud fail</td>
+        <td class="nw"><strong>靜默拿 defaultConfig</strong></td>
+        </tr>
+        <tr>
+        <td>CI 影響</td>
+        <td class="nw">現有 workflow 完全不用動</td>
+        <td class="nw">build／簽章／上傳都要帶 flavor</td>
+        </tr>
+        </tbody>
+        </table>
+        </div>
+        <p class="lede wide">結論是：<strong>不是 flavor 不好，是這個專案在 iOS 那側省不到。</strong> iOS 無論如何都要 xcconfig 加 script，只有 Android 換成 flavor 會讓兩個平台的設定就此分家。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="環境">
+      <div class="eyebrow">收尾 / 邊界</div>
+      <h2>今天沒講的，都有對應的流程</h2>
+      <p class="lede">今天走的是<strong>正常發版</strong>那條線。下面這些情況各自有對應的 workflow，機制跟前面講的是同一套。</p>
+      <div class="body">
+        <div class="tw">
+        <table>
+        <thead>
+        <tr>
+        <th>情況</th>
+        <th>大概怎麼走</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+        <td class="nw">Hotfix</td>
+        <td>先跑一支 workflow 把 main 版號 PATCH +1，開 <code>hotfix/&lt;version&gt;</code> 進 main，之後走一般 <code>v</code> tag</td>
+        </tr>
+        <tr>
+        <td class="nw">推完 v tag 之後</td>
+        <td>兩支自動 workflow 依情況 bump staging 版號、或把 main 的內容同步回 staging</td>
+        </tr>
+        <tr>
+        <td class="nw">同版本重發</td>
+        <td>前面講過的 <code>-2</code> 後綴，prod 線需要勾一個確認</td>
+        </tr>
+        <tr>
+        <td class="nw">iOS 簽章 / 自架 runner</td>
+        <td>Codemagic CLI ＋ 臨時 keychain；runner 有互斥與清理要管</td>
+        </tr>
+        </tbody>
+        </table>
+        </div>
+        <p class="lede wide"><strong>反過來也成立</strong>：動了 workflow、script 或環境設定，記得同步更新你們自己的流程文件，不然下一個人會照著舊文件操作。這幾頁提到的 script，去識別化過的樣本放在這份簡報旁邊的 <code>samples/</code>。</p>
+      </div>
+    </section>
+
+    <section class="slide" data-sec="環境">
       <div class="eyebrow">收尾</div>
-      <h2>可以帶走的幾個設計原則</h2>
+      <h2>帶走這四件事</h2>
       <div class="body">
         <ol class="steps">
-          <li><strong>讓分支決定一切。</strong>一條線一組環境、一個 tag 前綴、一個 Firebase 專案，不要有第三種組合。</li>
-          <li><strong>把「建置」與「派發」分開。</strong>推分支只驗證，只有 tag 會真的送出去，也只有 tag 會消耗建置編號。</li>
-          <li><strong>版號只留一個來源。</strong>其他數字（tag 名、建置編號）都從它推導，不要讓人有機會填錯第二個地方。</li>
-          <li><strong>環境差異收斂成一個入口。</strong>能用變數的用變數，不能的就在建置前把檔案複製到位，並把產物都放進 gitignore。</li>
-          <li><strong>把複雜情境拆成獨立的布林值。</strong>四種發版情境是兩個問題的組合，不是四條規則。</li>
-          <li><strong>不要污染 runner 的長期狀態。</strong>臨時 keychain、臨時 SSH key，在失敗路徑上也要還原——而且還原之後記得刪掉，否則憑證會一次次累積在同一台機器上。</li>
-          <li><strong>把外部字串當資料，不要當指令。</strong>branch 與 tag 名是使用者可以決定的，直接內插進 shell 就是一條注入路徑；順著同一個念頭，CI 的權限預設給唯讀，只有真的要寫的那一個 job 才提升。</li>
-          <li><strong>會靜默失敗的地方要讓它吵。</strong>未知的環境值、找不到的憑證、被跳過的部署，全部改成當場失敗或至少浮一條 warning——最貴的錯誤是那種綠燈、但東西是錯的。</li>
+          <li><strong>分支決定一切。</strong> staging 走 <code>dev</code> tag 與 staging 專案，main 走 <code>v</code> tag 與 prod 專案，沒有第三種組合。</li>
+          <li><strong>只有 tag 會派發。</strong> 推分支與手動觸發只做測試與建置，也不會動到 build number 計數器。</li>
+          <li><strong>版號只有一個來源，就是 <code>pubspec.yaml</code>。</strong> MAJOR / MINOR 人自己改，CI 只動 PATCH；build number 完全是 CI 的產物。</li>
+          <li><strong>環境差異只有一個入口，就是 <code>build_config/&lt;env&gt;.json</code>；變數解決不了的，用 script 把檔案複製到位。</strong> 加一個環境不用改程式碼。代價是 <strong>iOS 建置前一定要先跑 <code>generate_app_config.sh</code>——忘記不會報錯，只會安靜地用上一次的環境。</strong></li>
         </ol>
       </div>
     </section>
 
-    <!-- 25 -->
-    <section class="slide thanks" data-sec="進階">
+    <section class="slide thanks" data-sec="環境">
       <h1>謝謝</h1>
       <p class="qa">Q &amp; A</p>
       <p class="sig">胖胖 · TVBS Lab Team</p>
     </section>
-
     <div class="corner">
       <button id="prev" type="button" aria-label="上一頁">‹</button>
-      <span class="n" id="counter">1 / 25</span>
+      <span class="n" id="counter">1 / 32</span>
       <button id="next" type="button" aria-label="下一頁">›</button>
     </div>
 
@@ -999,22 +1336,19 @@ keychain <span class="a">delete --path "$KEYCHAIN"</span>        <span class="c"
   import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 
   const FONT = 'system-ui, -apple-system, "PingFang TC", "Noto Sans TC", sans-serif';
-
-  // 對齊簡報色票；fontSize 保持常規值，讓 mermaid 自己依文字量算節點大小
   const light = {
     background: '#FFFFFF', primaryColor: '#F6F7F9', primaryTextColor: '#131720',
     primaryBorderColor: '#B9C0CD', lineColor: '#5D6673',
-    secondaryColor: '#EEF0FC', tertiaryColor: '#FFFFFF',
-    fontFamily: FONT, fontSize: '16px'
+    secondaryColor: '#EEF0FC', tertiaryColor: '#FFFFFF', fontFamily: FONT, fontSize: '16px'
   };
   const dark = {
     background: '#161C26', primaryColor: '#1D242F', primaryTextColor: '#E9ECF2',
     primaryBorderColor: '#39414F', lineColor: '#8A93A3',
-    secondaryColor: '#1C2138', tertiaryColor: '#161C26',
-    fontFamily: FONT, fontSize: '16px'
+    secondaryColor: '#1C2138', tertiaryColor: '#161C26', fontFamily: FONT, fontSize: '16px'
   };
 
   const nodes = Array.from(document.querySelectorAll('pre.mermaid'));
+
   // <pre> 裡的 <br/> 會被 HTML 解析器變成真正的 <br> 元素，textContent 只取文字節點、
   // 會把它整個丟掉，節點文字就不換行。改用 innerHTML 保留標籤，再還原 entity
   // （&amp; 必須最後解，否則會二次 decode）。
@@ -1031,21 +1365,16 @@ keychain <span class="a">delete --path "$KEYCHAIN"</span>        <span class="c"
   const mq = window.matchMedia('(prefers-color-scheme: dark)');
 
   function draw() {
-    nodes.forEach(n => {
-      n.removeAttribute('data-processed');
-      n.textContent = n.dataset.src;
-    });
+    nodes.forEach(n => { n.removeAttribute('data-processed'); n.textContent = n.dataset.src; });
     mermaid.initialize({
-      startOnLoad: false,
-      theme: 'base',
+      startOnLoad: false, theme: 'base',
       themeVariables: mq.matches ? dark : light,
       flowchart: { htmlLabels: true, curve: 'basis', nodeSpacing: 34, rankSpacing: 44 }
     });
     mermaid.run({ nodes });
   }
-
   draw();
-  mq.addEventListener('change', draw);   // 切換系統主題時重繪，否則圖的配色會留在舊主題
+  mq.addEventListener('change', draw);
 </script>
 </body>
 </html>

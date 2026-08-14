@@ -1,0 +1,154 @@
+# 擷取自 2026-08-14 的內部版本，已去識別化。只保證可讀，不保證可直接執行。
+# 原檔：.github/actions/build-number/action.yml
+
+name: Generate Build Number
+description: Generate a build number based on environment and year
+
+inputs:
+  environment:
+    description: "Build environment (production or development)"
+    required: true
+  persist:
+    description: "Persist the generated build number to build-metadata"
+    required: false
+    default: "true"
+
+outputs:
+  build_number:
+    description: "Generated build number"
+    value: ${{ steps.version.outputs.BUILD_NO }}
+
+runs:
+  using: composite
+  steps:
+    - name: Generate Build Number
+      id: version
+      shell: bash
+      # ${{ }} 一律經 env 中轉，不直接內插進 shell（GitHub 官方明列的 script injection 向量）
+      env:
+        INPUT_ENVIRONMENT: ${{ inputs.environment }}
+        INPUT_PERSIST: ${{ inputs.persist }}
+      run: |
+        # --- Variables ---
+        ENVIRONMENT="$INPUT_ENVIRONMENT"
+        PERSIST="$INPUT_PERSIST"
+        METADATA_BRANCH="build-metadata"
+        JSON_FILE="build-history.json"
+
+        # --- 1. Prepare base data ---
+        YY=$(date +"%y")         # 26
+        FULL_YEAR=$(date +"%Y")  # 2026 (JSON Key)
+        MM=$(date +"%m")         # 01
+
+        # persist=false 是 PR／推分支／手動觸發那條路：號碼只是為了讓建置跑得完，
+        # 完全不碰計數器分支。所以計數器上的數字等於真正發出去的次數。
+        if [ "$PERSIST" = "false" ]; then
+          RUN_SUFFIX=$(printf "%05d" "$(( ${GITHUB_RUN_NUMBER:-0} % 100000 ))")
+          BUILD_NO="${YY}${MM}${RUN_SUFFIX}"
+
+          echo "Validation build number: $BUILD_NO"
+          echo "BUILD_NO=$BUILD_NO" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        if [ "$PERSIST" != "true" ]; then
+          echo "Error: persist must be either 'true' or 'false'. Received: $PERSIST"
+          exit 1
+        fi
+
+        # --- Git config ---
+        # 那串數字是 github-actions[bot] 這個帳號的 user id，寫錯或省略的話 commit 會
+        # 變成無主的、頭像是灰的。
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+        # --- 2. Switch to metadata branch and read JSON ---
+        if git ls-remote --exit-code --heads origin $METADATA_BRANCH >/dev/null 2>&1; then
+          echo "Metadata branch exists, checking out..."
+          # fetch 時寫明 refspec，不依賴 remote.origin.fetch：actions/checkout 設定的是
+          # **窄 refspec**（只含它 checkout 的那個 branch），所以 `git fetch origin
+          # build-metadata` 不會更新 refs/remotes/origin/build-metadata。寫明之後才能安全地
+          # 用 origin/$METADATA_BRANCH 當基準。
+          git fetch origin "+$METADATA_BRANCH:refs/remotes/origin/$METADATA_BRANCH"
+          # -B ... origin/$METADATA_BRANCH：self-hosted runner 的 workspace 會重複使用，
+          # 純 `git checkout $METADATA_BRANCH` 可能切到上一個 run 留下的過期 local branch。
+          # 用 origin/... 而不是 FETCH_HEAD：後者是共用 ref，任何一次 git fetch（含 hook、
+          # submodule 更新）都會覆寫它，重設到非預期 commit 的後果是寫入錯誤的計數。
+          git checkout -B "$METADATA_BRANCH" "origin/$METADATA_BRANCH"
+        else
+          echo "Creating new orphan branch for metadata..."
+          git checkout --orphan $METADATA_BRANCH
+          git rm -rf . 2>/dev/null || true
+          echo '{"production":{},"development":{}}' > $JSON_FILE
+          git add $JSON_FILE
+          git commit -m "Initialize build history"
+          git push origin $METADATA_BRANCH
+        fi
+
+        YEAR_MONTH="${FULL_YEAR}-${MM}"
+
+        # --- 3./4. Read counter, increment, append commit, safe push ---
+        # 每次遞增都 append 一個 commit（不是 --amend），所以
+        # `git log origin/build-metadata` 本身就是 build number 的稽核 log。
+        #
+        # 併發保護分兩層：
+        #   1. 呼叫端 job 的 `concurrency: { group: build-number-generator }` 讓計數 job
+        #      互斥執行。
+        #      ⚠️ 這不是 FIFO 佇列：GitHub 的 concurrency group 同時只保留「一個 running ＋
+        #      一個 pending」，第三個 run 進場會取消原本 pending 的那個。所以這層防的是
+        #      「同時寫入」，不保證「每個 run 都拿到號碼」。
+        #   2. 這個迴圈負責「push 仍然被拒」時不覆蓋別人的 commit——**不使用 --force**，
+        #      而是 fetch 到 remote 最新狀態、**重新讀檔重算計數**後再試。
+        #      重算是必要的：沿用上一輪算出的 NEXT_COUNT 會寫入過期的數字，造成重號。
+        PUSH_OK=false
+        for ATTEMPT in 1 2 3; do
+          # 每一輪都從工作目錄的檔案重讀（第一輪＝checkout 的內容，
+          # 後續輪＝上一輪 fetch/reset 後的 remote 最新內容）
+          if [ -f "$JSON_FILE" ]; then
+            JSON_CONTENT=$(cat $JSON_FILE)
+          else
+            JSON_CONTENT='{"production":{},"development":{}}'
+          fi
+
+          CURRENT_COUNT=$(echo "$JSON_CONTENT" | jq -r --arg env "$ENVIRONMENT" --arg ym "$YEAR_MONTH" '.[$env][$ym] // 0')
+          NEXT_COUNT=$((CURRENT_COUNT + 1))
+          NEW_JSON=$(echo "$JSON_CONTENT" | jq -c --arg env "$ENVIRONMENT" --arg ym "$YEAR_MONTH" --argjson v "$NEXT_COUNT" '.[$env][$ym] = $v')
+
+          echo "Attempt $ATTEMPT/3: $ENVIRONMENT $YEAR_MONTH $CURRENT_COUNT -> $NEXT_COUNT"
+          echo "$NEW_JSON" > $JSON_FILE
+          git add $JSON_FILE
+          git commit -m "Build counter: $ENVIRONMENT $YEAR_MONTH = $NEXT_COUNT"
+
+          if git push origin $METADATA_BRANCH; then
+            PUSH_OK=true
+            break
+          fi
+
+          echo "Push rejected on attempt $ATTEMPT/3 — refetching $METADATA_BRANCH and recomputing the counter"
+          # reset --hard 到 remote tip 會一起丟掉這一輪基於過期資料算出的 commit，
+          # 下一輪的重讀因此拿到的是 remote 最新的計數。
+          git fetch origin "+$METADATA_BRANCH:refs/remotes/origin/$METADATA_BRANCH"
+          git reset --hard "origin/$METADATA_BRANCH"
+          if [ "$ATTEMPT" -lt 3 ]; then
+            sleep 5
+          fi
+        done
+
+        # 全部重試失敗要 loud fail：靜默降級會發出一個沒被記錄下來的 build number
+        if [ "$PUSH_OK" != "true" ]; then
+          echo "Error: failed to push the build counter to $METADATA_BRANCH after 3 attempts."
+          exit 1
+        fi
+
+        # --- 5. Calculate build number ---
+        RUN_SUFFIX=$(printf "%05d" $NEXT_COUNT)
+
+        BUILD_NO="${YY}${MM}${RUN_SUFFIX}"
+
+        echo "Build Count: $NEXT_COUNT"
+        echo "Generated Build Number: $BUILD_NO"
+
+        # --- 6. Switch back to original commit ---
+        git checkout $GITHUB_SHA
+
+        echo "BUILD_NO=$BUILD_NO" >> $GITHUB_OUTPUT

@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  body { margin: 0; }
+</style>
+</head>
+<body>
+<style>
+  :root {
+    --u: min(1vw, 1.7778vh);
+
+    /* type scale — kept deliberately tight so dense slides never collide */
+    --fs-h2: calc(var(--u) * 3.45);
+    --fs-lede: calc(var(--u) * 1.68);
+    --fs-list: calc(var(--u) * 1.58);
+    --fs-table: calc(var(--u) * 1.36);
+    --fs-th: calc(var(--u) * 1.18);
+    --fs-code: calc(var(--u) * 1.32);
+    --fs-eyebrow: calc(var(--u) * 1.24);
+    --fs-rowv: calc(var(--u) * 1.4);
+    --fs-rowk: calc(var(--u) * 1.14);
+    --fs-note: calc(var(--u) * 1.46);
+    --fs-h3: calc(var(--u) * 1.4);
+
+    --paper: #F6F7F9;
+    --card: #FFFFFF;
+    --ink: #131720;
+    --ink-soft: #39414F;
+    --muted: #5D6673;
+    --line: #DCE0E7;
+    --line-soft: #E9ECF1;
+    --accent: #4A57C8;
+    --accent-soft: #EEF0FC;
+    --dev: #0B8A82;
+    --prod: #A9550D;
+    --diagram: #FCFCFD;
+    --warn: #9A3412;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0E1219; --card: #161C26; --ink: #E9ECF2; --ink-soft: #BCC3D0;
+      --muted: #8A93A3; --line: #262E3B; --line-soft: #1D242F;
+      --accent: #8E98F7; --accent-soft: #1C2138;
+      --dev: #3ED0C4; --prod: #F0A63E; --diagram: #EDEFF4; --warn: #F0A63E;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0E1219; --card: #161C26; --ink: #E9ECF2; --ink-soft: #BCC3D0;
+    --muted: #8A93A3; --line: #262E3B; --line-soft: #1D242F;
+    --accent: #8E98F7; --accent-soft: #1C2138;
+    --dev: #3ED0C4; --prod: #F0A63E; --diagram: #EDEFF4; --warn: #F0A63E;
+  }
+
+  :root[data-theme="light"] {
+    --paper: #F6F7F9; --card: #FFFFFF; --ink: #131720; --ink-soft: #39414F;
+    --muted: #5D6673; --line: #DCE0E7; --line-soft: #E9ECF1;
+    --accent: #4A57C8; --accent-soft: #EEF0FC;
+    --dev: #0B8A82; --prod: #A9550D; --diagram: #FCFCFD; --warn: #9A3412;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper); color: var(--ink);
+    font-family: system-ui, -apple-system, "PingFang TC", "Noto Sans TC", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck {
+    --display: "Avenir Next", Futura, "Segoe UI Variable Display", "Helvetica Neue", system-ui, sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, "JetBrains Mono", Consolas, monospace;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    min-height: 100vh;
+  }
+
+  /* ---------- stage ---------- */
+
+  .stage {
+    position: relative; width: calc(var(--u) * 100); height: calc(var(--u) * 56.25);
+    max-width: 100%; overflow: hidden;
+  }
+
+  .slide {
+    position: absolute; inset: 0;
+    padding: calc(var(--u) * 3.2) calc(var(--u) * 4.4) calc(var(--u) * 2.8);
+    display: flex; flex-direction: column; gap: calc(var(--u) * 1.5);
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .slide[data-on="1"] { opacity: 1; visibility: visible; pointer-events: auto; }
+
+  @media (prefers-reduced-motion: reduce) { .slide { transition: none; } }
+
+  /* ---------- type ---------- */
+
+  .eyebrow {
+    font-family: var(--mono); font-size: var(--fs-eyebrow);
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+    display: flex; align-items: center; gap: calc(var(--u) * 1.1);
+  }
+
+  .eyebrow::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+  h2 {
+    font-family: var(--display); font-size: var(--fs-h2); line-height: 1.12;
+    letter-spacing: -0.018em; font-weight: 600; margin: 0;
+    text-wrap: balance; color: var(--ink);
+  }
+
+  .lede { font-size: var(--fs-lede); line-height: 1.5; color: var(--ink-soft); max-width: 70ch; margin: 0; }
+  .lede.wide { max-width: none; }
+
+  .body {
+    flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin;
+    display: flex; flex-direction: column; gap: calc(var(--u) * 1.4);
+  }
+
+  p { margin: 0; }
+  code, .mono { font-family: var(--mono); }
+
+  code {
+    font-size: 0.93em; background: var(--line-soft);
+    padding: 0.08em 0.32em; border-radius: 3px; color: var(--ink);
+  }
+
+  strong { font-weight: 650; color: var(--ink); }
+  .dev-t { color: var(--dev); }
+  .prod-t { color: var(--prod); }
+  .acc-t { color: var(--accent); }
+
+  /* ---------- cover ---------- */
+
+  .cover { justify-content: center; gap: calc(var(--u) * 2.2); }
+
+  .cover h1 {
+    font-family: var(--display); font-size: calc(var(--u) * 6.6); line-height: 1.04;
+    letter-spacing: -0.03em; font-weight: 600; margin: 0; text-wrap: balance;
+  }
+
+  .cover .sub { font-size: calc(var(--u) * 2); color: var(--ink-soft); max-width: 60ch; line-height: 1.5; }
+
+  .byline {
+    align-self: start;
+    display: flex; flex-direction: column; gap: calc(var(--u) * 0.35);
+    padding-top: calc(var(--u) * 1);
+    border-top: 1px solid var(--line);
+    margin-top: calc(var(--u) * 0.6);
+  }
+
+  .byline .who {
+    font-family: var(--display); font-size: calc(var(--u) * 2.1);
+    font-weight: 600; letter-spacing: -0.01em; color: var(--ink);
+  }
+
+  .byline .what {
+    font-family: var(--mono); font-size: calc(var(--u) * 1.26);
+    letter-spacing: 0.06em; color: var(--muted);
+  }
+
+  /* ---------- two-column compare: the deck's core motif ---------- */
+
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--u) * 1.8); min-height: 0; }
+  .compare.tri { grid-template-columns: 1fr 1fr 1fr; }
+
+  .pane {
+    background: var(--card); border: 1px solid var(--line);
+    border-top-width: calc(var(--u) * 0.34); border-radius: calc(var(--u) * 0.45);
+    padding: calc(var(--u) * 1.6) calc(var(--u) * 1.7);
+    display: flex; flex-direction: column; gap: calc(var(--u) * 0.95); min-width: 0;
+  }
+
+  .pane.dev { border-top-color: var(--dev); }
+  .pane.prod { border-top-color: var(--prod); }
+  .pane.neutral { border-top-color: var(--accent); }
+
+  .pane h3 {
+    font-family: var(--mono); font-size: var(--fs-h3); letter-spacing: 0.08em;
+    text-transform: uppercase; margin: 0; font-weight: 600;
+  }
+
+  .pane.dev h3 { color: var(--dev); }
+  .pane.prod h3 { color: var(--prod); }
+  .pane.neutral h3 { color: var(--accent); }
+
+  .pane p { font-size: var(--fs-lede); line-height: 1.45; color: var(--ink-soft); }
+
+  .pane .row { display: flex; flex-direction: column; gap: calc(var(--u) * 0.2); }
+  .pane .row .k { font-family: var(--mono); font-size: var(--fs-rowk); color: var(--muted); letter-spacing: 0.05em; }
+  .pane .row .v { font-family: var(--mono); font-size: var(--fs-rowv); color: var(--ink); word-break: break-all; line-height: 1.35; }
+
+  /* ---------- lists ---------- */
+
+  ul.clean {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: calc(var(--u) * 0.9);
+    font-size: var(--fs-list); line-height: 1.45; color: var(--ink-soft);
+  }
+
+  /* marker is absolutely positioned so the text stays one normal inline flow —
+     a flex li would turn each <strong> into its own item and break mid-sentence */
+  ul.clean > li { position: relative; padding-left: calc(var(--u) * 1.9); }
+
+  ul.clean > li::before {
+    content: ""; position: absolute; left: 0; top: calc(var(--u) * 0.62);
+    width: calc(var(--u) * 0.66); height: calc(var(--u) * 0.66);
+    background: var(--accent); border-radius: 50%;
+  }
+
+  ol.steps {
+    list-style: none; counter-reset: s; margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: calc(var(--u) * 1);
+    font-size: var(--fs-list); line-height: 1.45; color: var(--ink-soft);
+  }
+
+  ol.steps > li {
+    counter-increment: s; position: relative;
+    padding-left: calc(var(--u) * 3.3); min-height: calc(var(--u) * 2.2);
+  }
+
+  ol.steps > li::before {
+    content: counter(s); position: absolute; left: 0; top: calc(var(--u) * -0.05);
+    font-family: var(--mono); font-size: calc(var(--u) * 1.22); color: var(--accent);
+    border: 1px solid var(--accent); border-radius: 50%;
+    width: calc(var(--u) * 2.2); height: calc(var(--u) * 2.2);
+    display: grid; place-items: center; font-weight: 600;
+  }
+
+  /* ---------- tables ---------- */
+
+  .tw { overflow: auto; min-height: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: var(--fs-table); font-variant-numeric: tabular-nums; }
+
+  th, td {
+    text-align: left; padding: calc(var(--u) * 0.82) calc(var(--u) * 0.95);
+    border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.38;
+  }
+
+  th {
+    font-family: var(--mono); font-size: var(--fs-th); letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted); font-weight: 600;
+    border-bottom-color: var(--ink-soft); white-space: nowrap;
+  }
+
+  td.m { font-family: var(--mono); }
+  td.nw { white-space: nowrap; }
+  th.dev-h { color: var(--dev); }
+  th.prod-h { color: var(--prod); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ---------- code ---------- */
+
+  .code {
+    font-family: var(--mono); font-size: var(--fs-code); line-height: 1.5;
+    background: var(--card); border: 1px solid var(--line);
+    border-left: calc(var(--u) * 0.3) solid var(--accent);
+    border-radius: calc(var(--u) * 0.35);
+    padding: calc(var(--u) * 1.1) calc(var(--u) * 1.4);
+    overflow-x: auto; white-space: pre; color: var(--ink); margin: 0;
+  }
+
+  /* 密集頁收緊垂直間距，讓最後幾十 px 的內容不被捲軸吃掉 */
+  .slide.tight { gap: calc(var(--u) * 1.1); }
+  .slide.tight .body { gap: calc(var(--u) * 1); }
+
+  /* 密集頁用的縮排版：整頁塞不下時縮字級，不要讓內容被捲軸吃掉 */
+  .code.sm { font-size: calc(var(--u) * 1.14); line-height: 1.42; }
+  .code.xs { font-size: calc(var(--u) * 1.04); line-height: 1.4; }
+  .tw.sm table { font-size: calc(var(--u) * 1.18); }
+  .tw.sm th, .tw.sm td { padding: calc(var(--u) * 0.6) calc(var(--u) * 0.78); }
+
+  .code.dev-b { border-left-color: var(--dev); }
+  .code.prod-b { border-left-color: var(--prod); }
+  .code .c { color: var(--muted); }
+  .code .d { color: var(--dev); font-weight: 600; }
+  .code .p { color: var(--prod); font-weight: 600; }
+  .code .a { color: var(--accent); font-weight: 600; }
+
+  /* ---------- id demo: typography performs the concept ---------- */
+
+  .idshow { display: flex; flex-direction: column; gap: calc(var(--u) * 2.2); align-items: center; padding: calc(var(--u) * 1) 0; }
+
+  .idline { font-family: var(--mono); font-size: calc(var(--u) * 2.9); display: flex; align-items: flex-end; white-space: nowrap; }
+  .idline.small { font-size: calc(var(--u) * 2.4); }
+
+  .idbase { color: var(--ink); }
+  .idsuf { position: relative; padding-bottom: calc(var(--u) * 1.35); }
+
+  .idsuf::after {
+    content: attr(data-note); position: absolute; left: 0; bottom: 0;
+    font-size: calc(var(--u) * 1.14); letter-spacing: 0.07em;
+    text-transform: uppercase; white-space: nowrap;
+  }
+
+  .idsuf.dev { color: var(--dev); border-bottom: 2px solid var(--dev); }
+  .idsuf.dev::after { color: var(--dev); }
+  .idsuf.prod { color: var(--prod); border-bottom: 2px dashed var(--prod); }
+  .idsuf.prod::after { color: var(--prod); }
+
+  /* ---------- callout ---------- */
+
+  .note {
+    border-left: calc(var(--u) * 0.3) solid var(--warn); background: var(--card);
+    padding: calc(var(--u) * 1.1) calc(var(--u) * 1.4);
+    font-size: var(--fs-note); line-height: 1.45; color: var(--ink-soft);
+    border-radius: calc(var(--u) * 0.3);
+  }
+
+  .note b {
+    color: var(--warn); font-family: var(--mono); font-size: 0.88em;
+    letter-spacing: 0.06em; text-transform: uppercase; display: block;
+    margin-bottom: calc(var(--u) * 0.35);
+  }
+
+  /* ---------- diagram: fixed light ground keeps mermaid legible in both themes ---------- */
+
+  .diagram {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: calc(var(--u) * 0.45); padding: calc(var(--u) * 1.2);
+    display: grid; place-items: center; min-height: 0; flex: 1; overflow: auto;
+  }
+
+  /* width:100% is load-bearing: .diagram is a centred grid, so without it the
+     item shrinks to fit-content and the SVG falls back to its 300px default */
+  .diagram pre.mermaid {
+    margin: 0; padding: 0; background: none; border: none;
+    width: 100%; text-align: center;
+    /* 未渲染前先藏起來，避免原始語法一閃而過 */
+    color: transparent;
+  }
+
+  .diagram pre.mermaid[data-processed] { color: inherit; }
+  /* mermaid writes an inline max-width on the <svg>, so overriding needs !important.
+     width:100% scales the diagram up to fill the stage instead of sitting at its
+     natural size; the max-height cap stops tall graphs (the job-dependency one)
+     from overflowing. Measured in-browser: 26u is safe, 34u overflows. */
+  .diagram svg {
+    max-width: none !important;
+    width: 100%;
+    height: auto;
+    max-height: calc(var(--u) * 26);
+  }
+
+  /* ---------- chapter dividers ---------- */
+
+  .chapter { justify-content: center; gap: calc(var(--u) * 1.3); }
+
+  .chapter .chnum {
+    font-family: var(--mono); font-size: calc(var(--u) * 1.3);
+    letter-spacing: 0.34em; text-transform: uppercase; color: var(--accent);
+  }
+
+  .chapter h2 { font-size: calc(var(--u) * 6.4); letter-spacing: -0.03em; }
+
+  .chapter .chsub {
+    font-size: calc(var(--u) * 2); line-height: 1.5;
+    color: var(--ink-soft); max-width: 62ch;
+  }
+
+  /* ---------- closing ---------- */
+
+  .thanks { justify-content: center; align-items: center; text-align: center; gap: calc(var(--u) * 1.8); }
+
+  .thanks h1 {
+    font-family: var(--display); font-size: calc(var(--u) * 9);
+    letter-spacing: 0.06em; font-weight: 600; margin: 0; color: var(--ink);
+  }
+
+  .thanks .qa {
+    font-family: var(--mono); font-size: calc(var(--u) * 3);
+    letter-spacing: 0.42em; text-indent: 0.42em; color: var(--accent);
+  }
+
+  .thanks .sig { font-family: var(--mono); font-size: calc(var(--u) * 1.3); letter-spacing: 0.08em; color: var(--muted); }
+
+  /* ---------- corner pager: replaces the old top rail + bottom hud ---------- */
+
+  .corner {
+    position: absolute; z-index: 5;
+    right: calc(var(--u) * 2); bottom: calc(var(--u) * 1);
+    display: flex; align-items: center; gap: calc(var(--u) * 0.5);
+    font-family: var(--mono); font-size: calc(var(--u) * 1.06);
+    color: var(--muted); opacity: 0.5; transition: opacity 0.25s;
+  }
+
+  .corner:hover, .corner:focus-within { opacity: 1; }
+  .corner .n { font-variant-numeric: tabular-nums; letter-spacing: 0.06em; }
+
+  .corner button {
+    font: inherit; font-size: calc(var(--u) * 1.5); line-height: 1;
+    color: inherit; background: none; border: 0;
+    padding: 0 calc(var(--u) * 0.35); cursor: pointer;
+  }
+
+  .corner button:hover { color: var(--accent); }
+  .corner button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (max-width: 760px) {
+    :root { --u: 2.9vw; }
+    .stage { height: auto; min-height: calc(var(--u) * 90); }
+    .slide { position: relative; inset: auto; }
+    .compare, .compare.tri { grid-template-columns: 1fr; }
+    .chapter h2 { font-size: calc(var(--u) * 5); }
+    .thanks h1 { font-size: calc(var(--u) * 7); }
+    .corner { position: fixed; right: calc(var(--u) * 2); bottom: calc(var(--u) * 2); opacity: 1; }
+  }
+</style>
+
+<div class="deck">
+
+  <div class="stage" id="stage">
+
+{{SLIDES}}
+    <div class="corner">
+      <button id="prev" type="button" aria-label="上一頁">‹</button>
+      <span class="n" id="counter">1 / {{COUNT}}</span>
+      <button id="next" type="button" aria-label="下一頁">›</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var counter = document.getElementById('counter');
+    var idx = 0;
+
+    function go(n) {
+      idx = Math.max(0, Math.min(slides.length - 1, n));
+      slides.forEach(function (s, i) { s.setAttribute('data-on', i === idx ? '1' : '0'); });
+      counter.textContent = (idx + 1) + ' / ' + slides.length;
+      if (history.replaceState) history.replaceState(null, '', '#' + (idx + 1));
+      var body = slides[idx].querySelector('.body');
+      if (body) body.scrollTop = 0;
+    }
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); go(idx + 1); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); go(idx - 1); }
+      else if (e.key === 'Home') { e.preventDefault(); go(0); }
+      else if (e.key === 'End') { e.preventDefault(); go(slides.length - 1); }
+    });
+
+    document.getElementById('next').addEventListener('click', function () { go(idx + 1); });
+    document.getElementById('prev').addEventListener('click', function () { go(idx - 1); });
+
+    var x0 = null;
+    var stage = document.getElementById('stage');
+    stage.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    stage.addEventListener('touchend', function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) > 45) go(idx + (dx < 0 ? 1 : -1));
+      x0 = null;
+    }, { passive: true });
+
+    var start = parseInt((location.hash || '').replace('#', ''), 10);
+    go(isNaN(start) ? 0 : start - 1);
+
+    // 別人分享 #12 這種連結時，同一頁內也要跳得動。
+    // go() 用的是 replaceState，不會觸發這個事件，所以不會迴圈。
+    window.addEventListener('hashchange', function () {
+      var n = parseInt((location.hash || '').replace('#', ''), 10);
+      if (!isNaN(n) && n - 1 !== idx) go(n - 1);
+    });
+  })();
+</script>
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+
+  const FONT = 'system-ui, -apple-system, "PingFang TC", "Noto Sans TC", sans-serif';
+  const light = {
+    background: '#FFFFFF', primaryColor: '#F6F7F9', primaryTextColor: '#131720',
+    primaryBorderColor: '#B9C0CD', lineColor: '#5D6673',
+    secondaryColor: '#EEF0FC', tertiaryColor: '#FFFFFF', fontFamily: FONT, fontSize: '16px'
+  };
+  const dark = {
+    background: '#161C26', primaryColor: '#1D242F', primaryTextColor: '#E9ECF2',
+    primaryBorderColor: '#39414F', lineColor: '#8A93A3',
+    secondaryColor: '#1C2138', tertiaryColor: '#161C26', fontFamily: FONT, fontSize: '16px'
+  };
+
+  const nodes = Array.from(document.querySelectorAll('pre.mermaid'));
+
+  // <pre> 裡的 <br/> 會被 HTML 解析器變成真正的 <br> 元素，textContent 只取文字節點、
+  // 會把它整個丟掉，節點文字就不換行。改用 innerHTML 保留標籤，再還原 entity
+  // （&amp; 必須最後解，否則會二次 decode）。
+  nodes.forEach(n => {
+    n.dataset.src = n.innerHTML
+      .replace(/<br\s*\/?>/gi, '<br/>')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&amp;/g, '&');
+  });
+
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+
+  function draw() {
+    nodes.forEach(n => { n.removeAttribute('data-processed'); n.textContent = n.dataset.src; });
+    mermaid.initialize({
+      startOnLoad: false, theme: 'base',
+      themeVariables: mq.matches ? dark : light,
+      flowchart: { htmlLabels: true, curve: 'basis', nodeSpacing: 34, rankSpacing: 44 }
+    });
+    mermaid.run({ nodes });
+  }
+  draw();
+  mq.addEventListener('change', draw);
+</script>
+</body>
+</html>
