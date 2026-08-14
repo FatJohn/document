@@ -342,12 +342,13 @@
   /* mermaid writes an inline max-width on the <svg>, so overriding needs !important.
      width:100% scales the diagram up to fill the stage instead of sitting at its
      natural size; the max-height cap stops tall graphs (the job-dependency one)
-     from overflowing. Measured in-browser: 26u is safe, 34u overflows. */
+     from overflowing. Measured in-browser at 1440 × 900: 24u stays inside the
+     diagram content box after padding. */
   .diagram svg {
     max-width: none !important;
     width: 100%;
     height: auto;
-    max-height: calc(var(--u) * 26);
+    max-height: calc(var(--u) * 24);
   }
 
   /* ---------- chapter dividers ---------- */
@@ -623,24 +624,22 @@ jobs:
     <section class="slide tight" data-sec="發版">
       <div class="eyebrow">發版 / 流程</div>
       <h2>一次建置跑過的 job</h2>
-      <p class="lede">上一頁那十個 job 跑起來是這樣。兩條線的結構一樣，只有環境參數不同。</p>
+      <p class="lede">上一頁那十個 job 跑起來是這樣。兩條線的結構一樣，但不是每個檢查都在 build 的依賴鏈上。</p>
       <div class="body">
         <div class="diagram">
         <pre class="mermaid">
 graph LR
   A["check&lt;br/&gt;eligibility"] --&gt; B["generate&lt;br/&gt;build-number"]
-  B --&gt; C["build&lt;br/&gt;android"]
-  B --&gt; D["build&lt;br/&gt;ios"]
-  C --&gt; E["deploy&lt;br/&gt;android"]
-  D --&gt; F["deploy&lt;br/&gt;ios"]
-  G["test / ci-scripts&lt;br/&gt;gradle-config"] --&gt; C
-  G --&gt; D
+  B --&gt; C["parallel builds&lt;br/&gt;Android · iOS"]
+  C --&gt; D["tag only&lt;br/&gt;Firebase · TestFlight"]
+  R["resolve&lt;br/&gt;version"] --&gt; C
+  T["test"] --&gt; C
 </pre>
         </div>
         <ul class="clean">
           <li><code>test</code>、<code>ci-scripts</code>、<code>gradle-config</code>、<code>resolve-version</code>、<code>check-deployment-eligibility</code> <strong>五個平行起跑</strong></li>
           <li><code>generate-build-number</code> 要等閘門結果，才知道這次算不算正式建置；之後 Android 與 iOS 平行建置、各自派發</li>
-          <li><code>gradle-config</code> <strong>不被任何 job <code>needs</code></strong>：它不擋別人，但自己紅了整條 run 就是紅的</li>
+          <li>真正擋住兩個 build job 的是 <code>test</code>、版號、build number 與派發閘門；<code>ci-scripts</code>、<code>gradle-config</code> <strong>不被任何 job <code>needs</code></strong>，會獨立跑完，但任一紅燈仍會讓整條 run 失敗</li>
         </ul>
       </div>
     </section>
@@ -1071,8 +1070,8 @@ rm -rf "$TARGET" &amp;&amp; cp -R "$SOURCE" "${ASSETS_DIR}/LaunchImage.imageset"
         </div>
         <p class="lede wide">在 CI 裡它還會把算好的完整 bundle id 寫進 <code>GITHUB_ENV</code>，後面抓簽章憑證的步驟直接用那個值。</p>
         <div class="note">
-          <b>這是全場最需要記住的一件事</b>
-          <strong>iOS build 前忘記跑 <code>generate_app_config.sh</code>，不會有任何提示。</strong> 它就沿用上一次的 <code>AppConfig.xcconfig</code>——你昨天跑 dev、今天想跑 prod，build 出來的還是 dev。這個到現在沒有擋。
+          <b>真正要守的是：每一個 build 入口都先產設定</b>
+          <code>AppConfig.xcconfig</code> 是產物，不能相信工作目錄裡上一次留下的版本。這個案例在 <code>Runner</code> scheme 的 Build Pre-action 會自動跑 <code>generate_app_config.sh</code>，CI 的 <code>build-ios</code> action 也會明確跑一次。<strong>新增 scheme 或新的 build 入口，也必須接上同一道防線。</strong>
         </div>
       </div>
     </section>
@@ -1080,9 +1079,9 @@ rm -rf "$TARGET" &amp;&amp; cp -R "$SOURCE" "${ASSETS_DIR}/LaunchImage.imageset"
     <section class="slide" data-sec="環境">
       <div class="eyebrow">環境 / GitHub 設定</div>
       <h2>用 environment 隔離同名的 variable 與 secret</h2>
-      <p class="lede">建置的差異來自 repo 裡的檔案，<strong>派發的差異來自 GitHub 的設定</strong>。兩條線的 deploy job 寫得一模一樣，只差 <code>environment:</code> 那一行。</p>
+      <p class="lede">建置的差異來自 repo 裡的檔案，<strong>派發的敏感值來自 GitHub 的設定</strong>。兩條線的 deploy job 結構相同；<code>environment:</code> 與 artifact 名稱依環境切換，secret／variable 則維持同名。</p>
       <div class="body">
-        <pre class="code sm"><span class="c"># 兩條線的 deploy job 逐字相同，只差 environment 那一行</span>
+        <pre class="code sm"><span class="c"># 兩條線結構相同；production 會換 environment 與 artifact 名稱</span>
 deploy-firebase:
   environment: <span class="a">development</span>      # ci-production.yml 寫的是 <span class="a">production</span>
   steps:
@@ -1147,8 +1146,8 @@ deploy-firebase:
 
     <section class="slide" data-sec="環境">
       <div class="eyebrow">環境 / 對照</div>
-      <h2>iOS 沒有 flavor，只有 scheme × configuration</h2>
-      <p class="lede">Xcode 根本沒有 flavor 這個概念。Flutter 的 <code>--flavor dev</code> 在 iOS 是去找一個<strong>同名的 scheme</strong>，而且要建立對應的 build configuration，各自 include 不同的 xcconfig。</p>
+      <h2>iOS 沒有 Android flavor 的一對一對應</h2>
+      <p class="lede">Xcode 沒有一個與 <code>productFlavors</code> 等價、能一次表達整個 variant matrix 的機制。Flutter 的 <code>--flavor dev</code> 在 iOS 是去找一個<strong>同名的 scheme</strong>，並搭配對應的 build configuration 與 xcconfig。</p>
       <div class="body">
         <div class="compare">
         <div class="pane dev">
@@ -1190,13 +1189,13 @@ deploy-firebase:
         </tr>
         <tr>
         <td>新增環境</td>
-        <td class="nw">加一份 JSON 加目錄，不動程式碼</td>
+        <td class="nw">加一份 JSON 加目錄；平台取值<br>不用加分支，CI／憑證仍要配置</td>
         <td class="nw">Gradle 加 flavor、Xcode 加 scheme<br>與 configuration</td>
         </tr>
         <tr>
         <td>切換環境</td>
-        <td class="nw"><strong>要先跑 script，忘了會靜默沿用</strong></td>
-        <td class="nw">每次明示，體驗較好</td>
+        <td class="nw">dart-define 決定；Runner Pre-action<br>自動重產 xcconfig</td>
+        <td class="nw">每次明示 scheme，體驗較直觀</td>
         </tr>
         <tr>
         <td>一次出多環境</td>
@@ -1216,7 +1215,7 @@ deploy-firebase:
         </tbody>
         </table>
         </div>
-        <p class="lede wide">結論是：<strong>不是 flavor 不好，是這個專案在 iOS 那側省不到。</strong> iOS 無論如何都要 xcconfig 加 script，只有 Android 換成 flavor 會讓兩個平台的設定就此分家。</p>
+        <p class="lede wide">結論是：<strong>不是 flavor 不好，是這個案例採單 target、又要讓 Dart／Android／iOS 共用同一份設定時，iOS 那側仍需要 xcconfig 與檔案就位步驟。</strong> 只把 Android 換成 flavor，會讓兩個平台的設定來源分家。</p>
       </div>
     </section>
 
@@ -1265,7 +1264,7 @@ deploy-firebase:
           <li><strong>分支決定一切。</strong> staging 走 <code>dev</code> tag 與 staging 專案，main 走 <code>v</code> tag 與 prod 專案，沒有第三種組合。</li>
           <li><strong>只有 tag 會派發。</strong> 推分支與手動觸發只做測試與建置，也不會動到 build number 計數器。</li>
           <li><strong>版號只有一個來源，就是 <code>pubspec.yaml</code>。</strong> MAJOR / MINOR 人自己改，CI 只動 PATCH；build number 完全是 CI 的產物。</li>
-          <li><strong>環境差異只有一個入口，就是 <code>build_config/&lt;env&gt;.json</code>；變數解決不了的，用 script 把檔案複製到位。</strong> 加一個環境不用改程式碼。代價是 <strong>iOS 建置前一定要先跑 <code>generate_app_config.sh</code>——忘記不會報錯，只會安靜地用上一次的環境。</strong></li>
+          <li><strong>平台環境差異只有一個入口，就是 <code>build_config/&lt;env&gt;.json</code>；變數解決不了的，用 script 把檔案複製到位。</strong> <code>AppConfig.xcconfig</code> 是產物，所以每個 iOS build 入口都必須先重產；這個案例的 Runner Pre-action 與 CI 已自動處理。</li>
         </ol>
       </div>
     </section>

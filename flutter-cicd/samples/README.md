@@ -8,11 +8,12 @@
 |---|---|---|
 | `build_config-development.json` | 環境 / 單一入口 | 一個環境一份的設定檔。上半是值，下半是路徑 |
 | `generate_app_config.sh` | 環境 / iOS | 讀設定檔寫出 `AppConfig.xcconfig`，順便把 Firebase plist 複製到位 |
+| `runner-build-pre-action.sh` | 環境 / iOS | `Runner` scheme Build Pre-action 的可讀片段；每次 build 先依 `DART_DEFINES` 重產 xcconfig |
 | `copy_launch_image.sh` | 環境 / iOS 的複製 | 掛成 Xcode build phase，每次 build 把對應環境的啟動圖複製成固定名稱 |
 | `build.gradle.kts` | 環境 / Android | 節錄。dart-define 解析、`environmentValue()` 的 loud fail、`copyGoogleServices` |
 | `build-number-action.yml` | 版本 / 狀態放哪 | composite action：孤兒分支上的月計數器，含重試與重算 |
 
-每一支都在檔頭寫了它跟原檔的差異。除了假名替換與加上的解說註解之外，只有兩處刪減：`build.gradle.kts` 拿掉了指向一支未附上的輔助 script 的錯誤訊息末段，`build_config-development.json` 拿掉了一個與本主題無關的第三方登入欄位。
+每一支都在檔頭寫了它跟原檔的差異。除了假名替換與加上的解說註解之外，只有兩處刪減：`build.gradle.kts` 拿掉了指向一支未附上的輔助 script 的錯誤訊息末段，`build_config-development.json` 拿掉了一個與本主題無關的第三方登入欄位。`runner-build-pre-action.sh` 原本內嵌在 `.xcscheme` XML，這裡只抽出 shell 內容方便閱讀。
 
 幾個看的時候值得注意的地方：
 

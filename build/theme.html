@@ -342,12 +342,13 @@
   /* mermaid writes an inline max-width on the <svg>, so overriding needs !important.
      width:100% scales the diagram up to fill the stage instead of sitting at its
      natural size; the max-height cap stops tall graphs (the job-dependency one)
-     from overflowing. Measured in-browser: 26u is safe, 34u overflows. */
+     from overflowing. Measured in-browser at 1440 × 900: 24u stays inside the
+     diagram content box after padding. */
   .diagram svg {
     max-width: none !important;
     width: 100%;
     height: auto;
-    max-height: calc(var(--u) * 26);
+    max-height: calc(var(--u) * 24);
   }
 
   /* ---------- chapter dividers ---------- */

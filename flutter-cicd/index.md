@@ -220,26 +220,24 @@ jobs:
 @ 發版 / 流程
 @tight: 1
 
-上一頁那十個 job 跑起來是這樣。兩條線的結構一樣，只有環境參數不同。
+上一頁那十個 job 跑起來是這樣。兩條線的結構一樣，但不是每個檢查都在 build 的依賴鏈上。
 
 ```mermaid
 graph LR
   A["check<br/>eligibility"] --> B["generate<br/>build-number"]
-  B --> C["build<br/>android"]
-  B --> D["build<br/>ios"]
-  C --> E["deploy<br/>android"]
-  D --> F["deploy<br/>ios"]
-  G["test / ci-scripts<br/>gradle-config"] --> C
-  G --> D
+  B --> C["parallel builds<br/>Android · iOS"]
+  C --> D["tag only<br/>Firebase · TestFlight"]
+  R["resolve<br/>version"] --> C
+  T["test"] --> C
 ```
 
 - `test`、`ci-scripts`、`gradle-config`、`resolve-version`、`check-deployment-eligibility` **五個平行起跑**
 - `generate-build-number` 要等閘門結果，才知道這次算不算正式建置；之後 Android 與 iOS 平行建置、各自派發
-- `gradle-config` **不被任何 job `needs`**：它不擋別人，但自己紅了整條 run 就是紅的
+- 真正擋住兩個 build job 的是 `test`、版號、build number 與派發閘門；`ci-scripts`、`gradle-config` **不被任何 job `needs`**，會獨立跑完，但任一紅燈仍會讓整條 run 失敗
 
 > 這是一次建置實際會跑到的 job。
 >
-> 最上面五個是平行起跑的。`ci-scripts` 跑的是 CI 自己那些 shell script 的測試，三十幾秒就完。
+> 最上面五個是平行起跑的。`ci-scripts` 跑的是 CI 自己那些 shell script 的測試，三十幾秒就完。注意圖上它跟 `gradle-config` 沒有箭頭連進 build：兩個都是獨立健康檢查，不會卡住 runner 去建置；但它們只要有一個紅，整條 run 最後還是紅。
 >
 > `generate-build-number` 要等閘門的結果，因為它得先知道這次算不算正式建置，才知道要不要動計數器。
 >
@@ -455,7 +453,7 @@ build number 只有一個硬性要求：**單調遞增**。這是 `generate-buil
 >
 > 標起來的那幾個欄位是等一下會一直出現的，先有印象就好。
 >
-> 重點是下半段：**路徑是設定檔自己講的，不是程式從環境名稱推導的**。所以加一個環境不用改任何程式碼，放一份 JSON、把它指到的目錄建出來就好。
+> 重點是下半段：**路徑是設定檔自己講的，不是程式從環境名稱推導的**。所以新增環境時，Android／iOS 的取值程式不用再加 `if/else`；放一份 JSON、把它指到的目錄建出來即可。CI 的分支、憑證與派發目標仍要另外配置，這裡講的是平台取值這一層。
 >
 > 建置前會先跑一支 script 把它加工成 `dart-define.json`：合併你的 `.local` 覆寫、檢查必填欄位有沒有漏、抽出 Google 登入要用的 client ID。那份產物在 `.gitignore` 裡，不要 commit。
 
@@ -641,8 +639,8 @@ rm -rf "$TARGET" && cp -R "$SOURCE" "${ASSETS_DIR}/LaunchImage.imageset"
 
 在 CI 裡它還會把算好的完整 bundle id 寫進 `GITHUB_ENV`，後面抓簽章憑證的步驟直接用那個值。
 
-::: note 這是全場最需要記住的一件事
-**iOS build 前忘記跑 `generate_app_config.sh`，不會有任何提示。** 它就沿用上一次的 `AppConfig.xcconfig`——你昨天跑 dev、今天想跑 prod，build 出來的還是 dev。這個到現在沒有擋。
+::: note 真正要守的是：每一個 build 入口都先產設定
+`AppConfig.xcconfig` 是產物，不能相信工作目錄裡上一次留下的版本。這個案例在 `Runner` scheme 的 Build Pre-action 會自動跑 `generate_app_config.sh`，CI 的 `build-ios` action 也會明確跑一次。**新增 scheme 或新的 build 入口，也必須接上同一道防線。**
 :::
 
 > 這四個值不是寫在 script 裡，而是從設定檔逐欄位讀出來的，跟 Android 讀的是同一份。
@@ -651,17 +649,17 @@ rm -rf "$TARGET" && cp -R "$SOURCE" "${ASSETS_DIR}/LaunchImage.imageset"
 >
 > 在 CI 裡它還會多做一件事：把算好的完整 bundle id 寫進 `GITHUB_ENV`，後面抓簽章憑證的步驟會直接用那個值。
 >
-> 最後那個框，是我今天最想要大家記住的一件事：**iOS build 之前忘記跑這支 script，不會有任何提示。** 它會安靜地沿用上一次的設定。昨天跑 dev、今天想跑 prod，build 出來的還是 dev，而且完全沒有警告。
+> 最後那個框是這頁的操作判準：**不要把「記得先跑 script」留給人。** `AppConfig.xcconfig` 是產物，如果 build 入口沒有先重產，它就可能沿用上一次的環境。
 >
-> 這個目前沒有擋起來。所以請大家先記住這個操作習慣。
+> 這個案例的一般本機路徑已由 `Runner` scheme 的 Build Pre-action 自動跑，CI 的 `build-ios` action 也明確跑一次。新增 scheme、改用另一個 target，或多一條建置入口時，要把同一道防線一起接過去。
 
 ## 用 environment 隔離同名的 variable 與 secret
 @ 環境 / GitHub 設定
 
-建置的差異來自 repo 裡的檔案，**派發的差異來自 GitHub 的設定**。兩條線的 deploy job 寫得一模一樣，只差 `environment:` 那一行。
+建置的差異來自 repo 裡的檔案，**派發的敏感值來自 GitHub 的設定**。兩條線的 deploy job 結構相同；`environment:` 與 artifact 名稱依環境切換，secret／variable 則維持同名。
 
 ```yaml sm
-# 兩條線的 deploy job 逐字相同，只差 environment 那一行
+# 兩條線結構相同；production 會換 environment 與 artifact 名稱
 deploy-firebase:
   environment: «development»      # ci-production.yml 寫的是 «production»
   steps:
@@ -680,7 +678,7 @@ deploy-firebase:
 >
 > 上次講這頁我列了一大堆變數名稱，其實方向錯了。要講的其實只有一件事：**同一個變數名，不同 environment 給不同的值。**
 >
-> 看上面那段：兩條線的 deploy job 幾乎逐字相同，連變數名都一樣，**只有 `environment:` 那一行不同**。
+> 看上面那段：兩條線的 deploy job 結構相同，`environment:` 與 artifact 名稱跟著環境換；但變數名完全一樣。
 >
 > 值在哪？在 GitHub 的 Settings → Environments 底下。development 跟 production 各自有一組同名的 variable 跟 secret，值不一樣。workflow 只寫名字，GitHub 依那行 `environment:` 決定要給哪一份。
 >
@@ -709,10 +707,10 @@ deploy-firebase:
 >
 > 但最後一列是重點：flavor 沒有「值帶齊了沒」這個概念。漏設一個值，它就是安靜地拿 `defaultConfig` 的值——正好是我們前面費力氣在擋的那種錯配。
 
-## iOS 沒有 flavor，只有 scheme × configuration
+## iOS 沒有 Android flavor 的一對一對應
 @ 環境 / 對照
 
-Xcode 根本沒有 flavor 這個概念。Flutter 的 `--flavor dev` 在 iOS 是去找一個**同名的 scheme**，而且要建立對應的 build configuration，各自 include 不同的 xcconfig。
+Xcode 沒有一個與 `productFlavors` 等價、能一次表達整個 variant matrix 的機制。Flutter 的 `--flavor dev` 在 iOS 是去找一個**同名的 scheme**，並搭配對應的 build configuration 與 xcconfig。
 
 ::: compare
 ::: pane dev | 換得掉的
@@ -731,7 +729,7 @@ bundle id、顯示名稱、icon 可以由 configuration 指到不同的 xcconfig
 
 代價是環境清單會散在 `project.pbxproj` 裡，那是 GUI 產生的檔案，**diff 幾乎沒辦法 review**。
 
-> iOS 這邊就沒有這麼好的事了，因為 **Xcode 根本沒有「變體」這個概念**。
+> iOS 這邊沒有 Android flavor 的一對一對應。Xcode 有 target、scheme 與 build configuration，但沒有一個像 `productFlavors` 那樣一次定義整個 variant matrix 的地方。
 >
 > 換得掉的部分：bundle id、顯示名稱、icon 這些可以由 configuration 指到不同的 xcconfig。切環境的體驗確實會變好。但注意，**值還是走 xcconfig 變數**，跟我們現在一模一樣。
 >
@@ -745,19 +743,19 @@ bundle id、顯示名稱、icon 可以由 configuration 指到不同的 xcconfig
 | 比較項 | {dev-h} 我們現在 | {prod-h} 走 flavor |
 |---|---|---|
 | 值的來源 | {nw} 一份 JSON，Android／iOS／Dart 共用 | {nw} Android 在 gradle、iOS 在 pbxproj，<br>Dart 端還是要另外 dart-define |
-| 新增環境 | {nw} 加一份 JSON 加目錄，不動程式碼 | {nw} Gradle 加 flavor、Xcode 加 scheme<br>與 configuration |
-| 切換環境 | {nw} **要先跑 script，忘了會靜默沿用** | {nw} 每次明示，體驗較好 |
+| 新增環境 | {nw} 加一份 JSON 加目錄；平台取值<br>不用加分支，CI／憑證仍要配置 | {nw} Gradle 加 flavor、Xcode 加 scheme<br>與 configuration |
+| 切換環境 | {nw} dart-define 決定；Runner Pre-action<br>自動重產 xcconfig | {nw} 每次明示 scheme，體驗較直觀 |
 | 一次出多環境 | {nw} **做不到** | {nw} 一行指令 |
 | 漏設定 | {nw} 逐 key loud fail | {nw} **靜默拿 defaultConfig** |
 | CI 影響 | {nw} 現有 workflow 完全不用動 | {nw} build／簽章／上傳都要帶 flavor |
 
-結論是：**不是 flavor 不好，是這個專案在 iOS 那側省不到。** iOS 無論如何都要 xcconfig 加 script，只有 Android 換成 flavor 會讓兩個平台的設定就此分家。
+結論是：**不是 flavor 不好，是這個案例採單 target、又要讓 Dart／Android／iOS 共用同一份設定時，iOS 那側仍需要 xcconfig 與檔案就位步驟。** 只把 Android 換成 flavor，會讓兩個平台的設定來源分家。
 
-> 把兩邊放在一起比。中間那兩列我們是輸的：切換環境要先跑 script，而且忘了會靜默沿用；一次出多個環境的產物我們也做不到。
+> 把兩邊放在一起比。中間那兩列我們是輸的：scheme 的切換體驗比較直觀，一次出多個環境的產物也比較自然。這個案例靠 Runner Pre-action 自動重產 xcconfig，避免把「先跑 script」留給人記。
 >
 > 贏的是漏設定的處理，還有 CI 完全不用動。
 >
-> 所以我的結論是：**不是 flavor 不好，是這個專案在 iOS 那側省不到。** iOS 無論如何都要 xcconfig 加 script，只有 Android 換成 flavor 會讓兩個平台的設定就此分家。
+> 所以我的結論是：**不是 flavor 不好，是這個案例在目前的單 target 與共用設定前提下，iOS 那側仍要有 xcconfig 與檔案就位步驟。** 只把 Android 換成 flavor，會讓兩個平台的設定來源分家。若改走多 target 或 runtime `FirebaseOptions`，結論就會不同。
 >
 > 先聲明一下，**這頁是取捨判斷，不是 repo 現況**——我們沒有試過 flavor 版本再回頭比較。真的要重來，值得的時機是「環境長到三個以上，而且需要同一次 CI 產出多個環境的產物」。
 
@@ -787,7 +785,7 @@ bundle id、顯示名稱、icon 可以由 configuration 指到不同的 xcconfig
 1. **分支決定一切。** staging 走 `dev` tag 與 staging 專案，main 走 `v` tag 與 prod 專案，沒有第三種組合。
 2. **只有 tag 會派發。** 推分支與手動觸發只做測試與建置，也不會動到 build number 計數器。
 3. **版號只有一個來源，就是 `pubspec.yaml`。** MAJOR / MINOR 人自己改，CI 只動 PATCH；build number 完全是 CI 的產物。
-4. **環境差異只有一個入口，就是 `build_config/<env>.json`；變數解決不了的，用 script 把檔案複製到位。** 加一個環境不用改程式碼。代價是 **iOS 建置前一定要先跑 `generate_app_config.sh`——忘記不會報錯，只會安靜地用上一次的環境。**
+4. **平台環境差異只有一個入口，就是 `build_config/<env>.json`；變數解決不了的，用 script 把檔案複製到位。** `AppConfig.xcconfig` 是產物，所以每個 iOS build 入口都必須先重產；這個案例的 Runner Pre-action 與 CI 已自動處理。
 
 > 如果今天只帶走四件事：
 >
@@ -799,7 +797,7 @@ bundle id、顯示名稱、icon 可以由 configuration 指到不同的 xcconfig
 >
 > **第四，環境差異只有一個入口，變數解決不了的就用 script 把檔案複製到位。** 這是今天環境那一章的全部——一份 JSON 說值也說路徑，剩下沒有變數可用的東西，用 script 在建置前把它們搬到位。
 >
-> 而它的代價就在同一句話裡：**iOS 建置前一定要先跑 `generate_app_config.sh`。** 忘記不會報錯，只會安靜地用上一次的環境。這是今天唯一一個我要你們改變操作習慣的地方。
+> 這套做法的操作判準也在同一句話裡：**每個 iOS build 入口都要先重產 `AppConfig.xcconfig`。** 這個案例的 Runner Pre-action 與 CI 已自動處理；新增入口時要一起接上，而不是再要求人記一個步驟。
 
 ## @thanks
 
@@ -809,7 +807,7 @@ bundle id、顯示名稱、icon 可以由 configuration 指到不同的 xcconfig
 >
 > ### 可能被問到的問題
 >
-> **Q：為什麼不用 flavor？** 見 flavor 那三頁。一句話：Android 那側 flavor 確實比較乾淨，但 iOS 沒有等價機制、還是要 xcconfig 加 script，只換 Android 會讓兩個平台的設定分家。
+> **Q：為什麼不用 flavor？** 見 flavor 那三頁。一句話：Android 那側 flavor 確實比較乾淨，但目前單 target 的 iOS 仍要 xcconfig 與檔案就位步驟；只換 Android 會讓兩個平台的設定來源分家。若改走多 target 或 runtime `FirebaseOptions`，要重新評估。
 >
 > **Q：我可以自己推 tag 嗎？** 技術上可以用 tag ruleset 擋，但更重要的是手推的 tag 不會帶 App 身分，也繞過了 workflow 的版號計算。請走 Actions 介面。
 >
@@ -817,7 +815,7 @@ bundle id、顯示名稱、icon 可以由 configuration 指到不同的 xcconfig
 >
 > **Q：為什麼我的 PR CI 綠了，發版卻炸掉？** 最常見的是 deploy-only 的路徑 PR 根本不會跑到。這也是為什麼加了 `gradle-config` 這個 job——把「另一個環境的設定」從發版當下提前到 PR 階段驗。
 >
-> **Q：新增一個環境要多久？** 放一份 `build_config/<env>.json` 加上它指到的目錄跟檔案，程式碼不用改。真正的瓶頸是 Firebase Console 註冊新 bundle id 跟 Apple Developer 那邊的憑證。
+> **Q：新增一個環境要多久？** 平台取值這一層只要放一份 `build_config/<env>.json` 與它指到的檔案，不用再加 `if/else`。真正的工作是 Firebase Console、Apple Developer、GitHub Environment、簽章素材與 CI 路由；所以不能把「不用改平台程式」講成「整條發版線不用改」。
 >
 > **Q：bundle id 的 base 是不是也在設定檔裡？** 不是，這是這套做法唯一的例外——base 那段字串散在 `project.pbxproj`（app target 的 Debug／Release／Profile 各一行）與 `build.gradle.kts` 裡，而 iOS 那支 script 是反過來從 pbxproj 抓的。
 >
