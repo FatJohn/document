@@ -22,6 +22,34 @@ sig: 胖胖 · TVBS Lab Team
 >
 > 今天分三段：**怎麼發版**、**版號怎麼決定**、**環境怎麼切**。中間隨時可以打斷我問問題。
 
+## 先講一下我是誰
+@ Intro
+
+::: compare intro
+::: pane neutral | 胖胖 · John Shu
+現在 :: TVBS · Lab Team，手上是 Flutter
+最熟 :: C# / .NET（WPF、UWP），前 Microsoft MVP
+點過的技能樹 :: C++、JavaScript / TypeScript、Dart、Vue、React
+起家 :: Pocket PC / Windows CE，幾百年前
+還玩過 :: Symbian 的 Qt app、Bada、MRE、Windows Phone，全收了
+筆記丟在 :: dotblogs.com.tw/FatJohn
+:::
+::: qr linktree-qr.svg | linktr.ee/fatjohn0927
+:::
+:::
+
+QR 連到我的 GitHub 與點部落，今天講完之後想回頭翻的東西，都可以從那裡進去找。
+
+> 開始之前先簡單自我介紹。
+>
+> 我是胖胖，在 TVBS 的 Lab Team。GitHub bio 我寫的是「打雜的工程獅，最熟的是 C#」——這句是真的，C# 寫最久，WPF、UWP 那個年代都待過，也拿過 Microsoft MVP。
+>
+> 再往前是 Pocket PC 跟 Windows CE，那真的是幾百年前了。中間還玩過 Symbian 上的 Qt、Bada、MRE，還有 Windows Phone——如果你沒聽過 Bada 或 MRE，那很正常，它們早就收了。**其實不只它們，這一串裡的平台現在一個都不剩。**
+>
+> 現在手上是 Flutter，而它在我 profile 上還掛著 beginner。那個我沒改，因為它是真的。今天要講的整套流程，就是這個 beginner 一路撞出來的——等一下講到哪裡你覺得「這樣做很怪」，很有可能你是對的，歡迎當場說。
+>
+> 右邊 QR 連到我的 GitHub 跟點部落，想回頭翻東西可以從那裡進。
+
 ## 兩條部署線
 @ Overview
 

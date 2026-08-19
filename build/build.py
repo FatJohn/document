@@ -47,6 +47,9 @@
     內文。
     :::
 
+    ::: qr linktree-qr.svg | linktr.ee/someone
+    （把同目錄的 SVG 內嵌進投影片，維持單檔）
+
 以 `<` 開頭的區塊原樣輸出，任何 template 沒涵蓋的排版都用它。
 """
 import io
@@ -55,6 +58,7 @@ import re
 import sys
 
 THEME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "theme.html")
+SRC_DIR = ""          # 原稿所在目錄，`::: qr` 的相對路徑以它為準（main() 設定）
 
 
 # ---------- inline ----------
@@ -257,6 +261,17 @@ def render_container(spec, body):
         text = " ".join(x.strip() for x in body if x.strip())
         return '<div class="note">\n  <b>%s</b>\n  %s\n</div>' % (inline(title), inline(text))
 
+    if spec.startswith("qr"):
+        # `::: qr <svg檔> | <說明>`——把 SVG 原地內嵌，投影片才能維持單檔可帶走。
+        src, _, label = spec[len("qr"):].strip().partition("|")
+        label = label.strip()
+        svg = io.open(os.path.join(SRC_DIR, src.strip()), encoding="utf-8").read()
+        svg = re.sub(r"<\?xml[^>]*\?>\s*", "", svg).strip()
+        svg = re.sub(r"<title>.*?</title>", "", svg, flags=re.S)   # 產生器留下的 "Layer 1" 沒有意義
+        svg = svg.replace("<svg ", '<svg role="img" aria-label="%s" ' % esc(label), 1)
+        return ('<div class="qr">\n<div class="qr-card">%s</div>\n'
+                '<div class="qr-label">%s</div>\n</div>' % (svg, inline(label)))
+
     if spec.startswith("idshow"):
         lines_out = []
         for ln in body:
@@ -395,6 +410,8 @@ def main():
     if len(sys.argv) < 2:
         sys.exit("用法：python3 build.py <原稿.md>")
     src_path = sys.argv[1]
+    global SRC_DIR
+    SRC_DIR = os.path.dirname(os.path.abspath(src_path))
     src = io.open(src_path, encoding="utf-8").read()
     front, slides = parse(src)
 

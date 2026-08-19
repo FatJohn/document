@@ -197,6 +197,33 @@
   .pane .row .k { font-family: var(--mono); font-size: var(--fs-rowk); color: var(--muted); letter-spacing: 0.05em; }
   .pane .row .v { font-family: var(--mono); font-size: var(--fs-rowv); color: var(--ink); word-break: break-all; line-height: 1.35; }
 
+  /* ---------- intro：自我介紹頁的左寬右窄 ＋ QR 卡片 ---------- */
+
+  .compare.intro { grid-template-columns: 1.5fr 1fr; }
+
+  .qr {
+    background: var(--card); border: 1px solid var(--line);
+    border-top-width: calc(var(--u) * 0.34); border-top-color: var(--accent);
+    border-radius: calc(var(--u) * 0.45);
+    padding: calc(var(--u) * 1.5);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: calc(var(--u) * 1);
+  }
+
+  /* QR 一律白底深碼：這支 SVG 的 path 是固定的 #1A1A1A，深色模式下沒有白卡就掃不到，
+     而反白的 QR 有不少掃描器讀不出來，所以卡片底色不跟著主題走。 */
+  .qr-card {
+    background: #FFFFFF; border-radius: calc(var(--u) * 0.4);
+    padding: calc(var(--u) * 0.7); line-height: 0;
+  }
+
+  .qr-card svg { display: block; width: calc(var(--u) * 12.5); height: auto; }
+
+  .qr-label {
+    font-family: var(--mono); font-size: var(--fs-rowv);
+    letter-spacing: 0.04em; color: var(--accent); text-align: center;
+  }
+
   /* ---------- lists ---------- */
 
   ul.clean {
