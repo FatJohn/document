@@ -8,7 +8,7 @@ sig: 胖胖 · TVBS Lab Team
 ---
 
 <!--
-  這份是投影片的原稿。`python3 build/build.py flutter-cicd/index.md` 產生同目錄的
+  這份是投影片的原稿。`python3 build/build.py talks/flutter-cicd/index.md` 產生同目錄的
   index.html（投影片）與 index-script.md（逐字稿）。
   `>` 開頭的行是講者稿，會進逐字稿、不會出現在投影片上。
   格式說明看 build/build.py 的檔頭。

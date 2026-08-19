@@ -3,7 +3,7 @@
 """把一份 Markdown 投影片原稿轉成單檔 HTML，外加一份逐字稿。
 
 用法：
-    python3 build/build.py flutter-cicd/index.md
+    python3 build/build.py talks/flutter-cicd/index.md
 
 產出兩個檔：`<原稿>.html`（投影片）與 `<原稿>-script.md`（逐字稿，由 `>` 那些行組成）。
 兩個都是產物，不要手改——投影片與講稿共用同一份原稿，就是為了不再手動同步。
