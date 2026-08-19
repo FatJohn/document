@@ -64,7 +64,7 @@ flutterfire configure \
 
 ### 3.3 驗證產生的檔案
 執行完成後，你應該會看到：
-```
+```text
 lib/
 ├── firebase_options_dev.dart
 ├── firebase_options_prod.dart

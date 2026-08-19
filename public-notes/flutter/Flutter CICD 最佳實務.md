@@ -332,7 +332,7 @@ jobs:
 **解決方案**：使用 **Metadata Branch** 儲存年度偏移量。
 
 **原理**：
-```
+```text
 yearly_run_number = GITHUB_RUN_NUMBER - offset
 ```
 
@@ -577,7 +577,7 @@ jobs:
 ```
 
 **執行流程**：
-```
+```text
     test ──┐
            ├──> build-android ──┐
 generate ──┤                     ├──> deploy
@@ -1191,7 +1191,7 @@ concurrency:
 #### 1. Secrets 未設定或錯誤
 
 **錯誤訊息**：
-```
+```text
 Error: Unable to locate credentials
 ```
 
@@ -1203,7 +1203,7 @@ Error: Unable to locate credentials
 #### 2. Build 快取問題
 
 **錯誤訊息**：
-```
+```text
 Error: Gradle build failed with exit code 1
 ```
 
@@ -1214,7 +1214,7 @@ Error: Gradle build failed with exit code 1
 #### 3. iOS Code Signing 失敗
 
 **錯誤訊息**：
-```
+```text
 error: No signing certificate "iOS Distribution" found
 ```
 
@@ -1226,7 +1226,7 @@ error: No signing certificate "iOS Distribution" found
 #### 4. Tag/Branch 不匹配
 
 **錯誤訊息**：
-```
+```text
 WARNING: dev tag found on branch 'main' instead of 'staging' - deployment skipped
 ```
 
@@ -1285,19 +1285,19 @@ WARNING: dev tag found on branch 'main' instead of 'staging' - deployment skippe
 **常見錯誤模式**：
 
 1. **Gradle 錯誤**：
-   ```
+   ```text
    FAILURE: Build failed with an exception.
    ```
    → 檢查 `android/app/build.gradle.kts`
 
 2. **Xcode 錯誤**：
-   ```
+   ```text
    error: Signing for "Runner" requires a development team.
    ```
    → 檢查 code signing 設定
 
 3. **Flutter 錯誤**：
-   ```
+   ```text
    Error: Could not resolve the package 'xxx' in 'file:///...'
    ```
    → 執行 `flutter pub get`

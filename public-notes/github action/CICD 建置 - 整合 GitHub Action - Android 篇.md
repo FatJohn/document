@@ -434,7 +434,7 @@ distributions 可以的值 : [Supported distributions](https://github.com/action
 看到有些文章會使用 [r0adkll/sign-android-release](https://github.com/r0adkll/sign-android-release) 這個 action 來簡化 sign 的工作，看了一下它的原始碼發現它是用 `apksigner` 去 sign，`apksigner` 是跟著 Android Studio 會有版本問題，所以這個 action 會去找有安裝的最新版本 SDK 裡面的 `apksigner` 來用，但是！！
 
 根據上面 Build an app bunlde with Gradle 的官方文件裡面寫
-```
+```text
 Note: You cannot use apksigner to sign your app bundle.
 ```
 

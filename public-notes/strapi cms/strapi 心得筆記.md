@@ -145,7 +145,7 @@ ArticleCategory
 這時候你想要一次拉出一個 User 怎麼拉出一個完整的資料呢？
 這邊給你個 request url 的範例，其他更詳細的就麻煩自己去看文件了
 
-```
+```text
 https://localhost:1337/api/artists/{artistId}?&populate[Avatar][fields][0]=url&populate[Article][fields]=*&populate[Article][populate][Categories][fields][0]=name
 ```
 
@@ -195,7 +195,7 @@ strapi 支援把 media 上傳到 S3(或相容) 的地方去，透過的就是 [@
 但其中在 middleware 的設定少了一點，這個沒設定對很有可能讓你 strapi 裡面的圖片預覽出不來
 
 github 頁面裡面的 middleware 的設定如下
-```
+```javascript
 module.exports = [
   // ...
   {

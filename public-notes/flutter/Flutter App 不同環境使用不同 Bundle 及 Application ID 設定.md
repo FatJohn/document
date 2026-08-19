@@ -92,7 +92,7 @@ android {
 
 建立 `ios/Flutter/AppConfig-default.xcconfig`：
 
-```
+```properties
 APP_CONFIG_SUFFIX=.dev
 APP_CONFIG_NAME=[DEV] YourApp
 ```
@@ -101,7 +101,7 @@ APP_CONFIG_NAME=[DEV] YourApp
 
 在 `ios/Flutter/Debug.xcconfig` 和 `ios/Flutter/Release.xcconfig` 最後加入：
 
-```
+```c
 #include "AppConfig-default.xcconfig"
 #include "AppConfig.xcconfig"
 ```
@@ -110,7 +110,7 @@ APP_CONFIG_NAME=[DEV] YourApp
 
 開啟 `ios/Runner.xcodeproj/project.pbxproj`，搜尋 `PRODUCT_BUNDLE_IDENTIFIER` 並替換為：
 
-```
+```properties
 PRODUCT_BUNDLE_IDENTIFIER = "com.yourapp$(APP_CONFIG_SUFFIX)";
 ```
 

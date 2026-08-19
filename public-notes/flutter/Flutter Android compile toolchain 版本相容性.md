@@ -25,7 +25,7 @@ Android compile toolchain 裡，這幾個套件的版本是環環相扣的。單
 
 ### 依賴方向
 
-```
+```text
 Flutter SDK
   * 決定最低 Kotlin 版本
   * 決定最低 Gradle 版本（透過內建的 Gradle wrapper）

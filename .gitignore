@@ -14,3 +14,10 @@ desktop.ini
 
 # Claude Code
 .claude/
+
+# Node
+node_modules/
+
+# public-notes 的產物：build/note.mjs 從同名 .md 產生，貼點部落用。
+# 可重建（node build/note.mjs --all），而且沒有理由讓 GitHub Pages 服務到它們。
+public-notes/**/*.html

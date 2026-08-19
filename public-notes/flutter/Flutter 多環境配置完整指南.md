@@ -156,7 +156,7 @@ android {
 ```
 
 **資源目錄結構**：
-```
+```text
 android/app/src/
 ├── dev/res/
 │   └── mipmap-*/
@@ -210,7 +210,7 @@ tasks.whenTaskAdded {
 ```
 
 **檔案結構**：
-```
+```text
 android/app/
 ├── config/
 │   ├── dev/google-services.json      # Dev 環境的 Firebase 配置
@@ -296,19 +296,19 @@ android {
 iOS 使用 **xcconfig 檔案** 來設定 Bundle ID suffix。
 
 **`ios/Flutter/Debug.xcconfig`**
-```
+```c
 #include "AppConfig.xcconfig"
 #include "Generated.xcconfig"
 ```
 
 **`ios/Flutter/Release.xcconfig`**
-```
+```c
 #include "AppConfig.xcconfig"
 #include "Generated.xcconfig"
 ```
 
 **`ios/Flutter/AppConfig.xcconfig`（動態生成）**
-```
+```properties
 APP_CONFIG_SUFFIX=.dev
 APP_CONFIG_NAME=MyApp [DEV]
 APP_CONFIG_ICON_NAME=AppIcon-Dev
@@ -316,7 +316,7 @@ APP_CONFIG_LAUNCH_IMAGE=LaunchImage-Dev
 ```
 
 **`ios/Runner.xcodeproj/project.pbxproj`**
-```
+```properties
 PRODUCT_BUNDLE_IDENTIFIER = "com.example.myapp$(APP_CONFIG_SUFFIX)";
 ```
 
@@ -342,7 +342,7 @@ PRODUCT_BUNDLE_IDENTIFIER = "com.example.myapp$(APP_CONFIG_SUFFIX)";
 ```
 
 **`AppConfig.xcconfig`**
-```
+```properties
 APP_CONFIG_NAME=MyApp [DEV]
 ```
 
@@ -356,7 +356,7 @@ APP_CONFIG_NAME=MyApp [DEV]
 在 Xcode 中建立多個 AppIcon Set，透過 xcconfig 變數控制使用哪一個：
 
 **資源目錄結構**：
-```
+```text
 ios/Runner/Assets.xcassets/
 ├── AppIcon-Dev.appiconset/          # Dev 環境的 icon
 │   ├── Contents.json
@@ -367,13 +367,13 @@ ios/Runner/Assets.xcassets/
 ```
 
 **`AppConfig.xcconfig`**
-```
+```properties
 APP_CONFIG_ICON_NAME=AppIcon-Dev
 ```
 
 **Xcode 設定**：
 在 Xcode 的 Build Settings 中設定：
-```
+```properties
 ASSETCATALOG_COMPILER_APPICON_NAME = $(APP_CONFIG_ICON_NAME)
 ```
 
@@ -389,7 +389,7 @@ Launch Image 的配置較複雜，因為 `LaunchScreen.storyboard` 無法直接�
 **解決方案**：使用 Build Phase Script 動態複製對應的 launch image。
 
 **資源目錄結構**：
-```
+```text
 ios/Runner/Assets.xcassets/
 ├── LaunchImage-Dev.imageset/        # Dev 環境的 launch image
 │   ├── Contents.json
@@ -452,7 +452,7 @@ echo "Copied launch image from $LAUNCH_IMAGE_NAME to LaunchImage"
 使用 Script 自動複製對應的 `GoogleService-Info.plist`：
 
 **檔案結構**：
-```
+```text
 ios/
 ├── config/
 │   ├── Dev/GoogleService-Info.plist      # Dev 環境的 Firebase 配置
@@ -611,7 +611,7 @@ FlutterFire CLI 提供 `flutterfire configure` 指令來自動產生 Firebase �
 
 #### 步驟 1：建立環境配置檔案
 
-```
+```text
 build_config/
 ├── development.json
 └── production.json
@@ -688,7 +688,7 @@ android {
 
 #### 步驟 3：建立資源目錄結構
 
-```
+```text
 android/app/
 ├── config/
 │   ├── dev/google-services.json
@@ -721,7 +721,7 @@ flutter build apk --dart-define-from-file=build_config/development.json
 
 #### 步驟 1：建立環境配置檔案
 
-```
+```text
 build_config/
 ├── development.json
 └── production.json
@@ -730,13 +730,13 @@ build_config/
 #### 步驟 2：建立 xcconfig 檔案
 
 **`ios/Flutter/Debug.xcconfig`**
-```
+```c
 #include "AppConfig.xcconfig"
 #include "Generated.xcconfig"
 ```
 
 **`ios/Flutter/Release.xcconfig`**
-```
+```c
 #include "AppConfig.xcconfig"
 #include "Generated.xcconfig"
 ```
@@ -744,12 +744,12 @@ build_config/
 #### 步驟 3：修改 `project.pbxproj`
 
 在 Xcode 中設定 Bundle Identifier：
-```
+```properties
 PRODUCT_BUNDLE_IDENTIFIER = "com.example.myapp$(APP_CONFIG_SUFFIX)";
 ```
 
 或直接編輯 `ios/Runner.xcodeproj/project.pbxproj`：
-```
+```properties
 PRODUCT_BUNDLE_IDENTIFIER = "com.example.myapp$(APP_CONFIG_SUFFIX)";
 ```
 
@@ -762,7 +762,7 @@ PRODUCT_BUNDLE_IDENTIFIER = "com.example.myapp$(APP_CONFIG_SUFFIX)";
 
 #### 步驟 5：建立資源目錄結構
 
-```
+```text
 ios/
 ├── config/
 │   ├── Dev/GoogleService-Info.plist
@@ -798,7 +798,7 @@ ios/
 #### 步驟 9：設定 Xcode Build Settings
 
 在 Xcode 的 Build Settings 中搜尋 "ASSETCATALOG_COMPILER_APPICON_NAME"，設定為：
-```
+```text
 $(APP_CONFIG_ICON_NAME)
 ```
 
@@ -951,7 +951,7 @@ esac
 #### 單一配置來源原則
 
 **不好的做法**：
-```
+```text
 ios/Flutter/
 ├── AppConfig-dev.xcconfig     # 重複配置
 ├── AppConfig-prod.xcconfig    # 重複配置
@@ -959,7 +959,7 @@ ios/Flutter/
 ```
 
 **好的做法**：
-```
+```text
 ios/Flutter/
 └── AppConfig.xcconfig         # 唯一配置來源（動態生成）
 ```

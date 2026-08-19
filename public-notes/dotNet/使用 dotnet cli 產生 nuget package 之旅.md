@@ -57,7 +57,7 @@ Using dotnet cli to create NuGet package
 此時會發現 `<ProjectReference>` 的 dll 不會正常的包裝進去 nuget 中
 
 根據 [dotnet pack](https://learn.microsoft.com/en-us/dotnet/core/tools/dotnet-pack) 指令說明中的描述是預期的，目前不支援
-```
+```text
   If the packed project has references to other projects, the other projects 
   aren't included in the package. Currently, you must have a package per 
   project if you have project-to-project dependencies.
@@ -80,7 +80,7 @@ Using dotnet cli to create NuGet package
   - Lv2Lib 依賴 Lv3Lib
 
 以 Visual Studio 的 Solution Explorer 的角度來看如下
-```
+```text
 - RootLib project
   - ProjectReference
     - Lv1Lib project
@@ -386,7 +386,7 @@ assembly 與 project 不同目錄下的範例，多了一個 Link，必須要把
 可以使用 msbuild 來達到指令是 `msbuild -t:pack` 
 
 根據 [Create a NuGet package using MSBuild](https://learn.microsoft.com/en-us/nuget/create-packages/creating-a-package-msbuild) 所述，dotnte pack 及 msbuild -t:pack 功用是相同的
-```
+```text
 The command that creates a package, msbuild -t:pack, is functionally 
 equivalent to dotnet pack.
 ```
@@ -417,7 +417,7 @@ equivalent to dotnet pack.
   - 每個 Project 均需要去使用 **NuGetizer** 這個 NuGet
 
 舉例
-```
+```text
 - RootLib (IsPackable = true)
   - ProjectReference
     - Lv1Lib (IsPackable = false)
