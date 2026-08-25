@@ -253,8 +253,8 @@ def render_container(spec, body):
         blocks = parse_blocks(others)
         blocks = [b.replace('<p class="lede wide">', "<p>") for b in blocks]
         head = "<h3>%s</h3>" % inline(title.strip()) if title.strip() else ""
-        return '<div class="pane %s">\n%s\n%s\n%s\n</div>' % (
-            tone.strip() or "neutral", head, "\n".join(rows), "\n".join(blocks))
+        content = "\n".join(part for part in (head, "\n".join(rows), "\n".join(blocks)) if part)
+        return '<div class="pane %s">\n%s\n</div>' % (tone.strip() or "neutral", content)
 
     if spec.startswith("note"):
         title = spec[len("note"):].strip()

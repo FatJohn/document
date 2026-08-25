@@ -3,7 +3,7 @@
 > 由 `python3 build/build.py` 從投影片原稿自動產生，**不要手改**——
 > 內容來源是原稿裡 `>` 開頭的行，要改講稿請改原稿再重跑。
 
-共 33 張。
+共 34 張。
 
 ---
 
@@ -43,87 +43,31 @@
 
 整套流程看起來分支很多，但每一個分歧，最後都能還原成同一個問題：**這是 staging 還是 main**。
 
-**如果今天只記得一件事，就記這張。** 後面所有東西都是這張圖的細節。
+**如果今天只記得一件事，就記這張。** `staging` 對應 `CI: Development`，`main` 對應 `CI: Production`；後面先看它們平常怎麼跑，最後才看發版怎麼讓 tag 叫起它們。
 
 ---
 
-## 4 · 章節轉場：發版
+## 4 · 章節轉場：建置
 
 （這張沒有講稿）
 
 ---
 
-## 5 · 發版只要點幾次滑鼠
+## 5 · 平常建置的兩條 CI workflow
 
-`發版 / 主線`
+`建置 / CI workflow`
 
-實際操作其實很簡單，**全部在 GitHub Actions 的介面上點**。
+現在先看平常實際在跑的兩支 CI：`staging` 對應 `CI: Development`，`main` 對應 `CI: Production`。branch push、PR、手動執行都會進來，先跑測試跟建置。
 
-第一步，開一個 staging 到 main 的 PR，這是點 workflow 幫你開的。第二步，PR merge 之後跑「Push Production Tag」那支，它會算好 tag 名稱、推上去，CI 就開始建置跟派發。
+兩份 CI 的上半段差別只有三個地方：監聽哪個分支、tag 的 glob 長怎樣、還有 production 刻意不中斷正在跑的建置——它 `cancel-in-progress` 是 false，因為一次正式發版跑到一半被新的 push 砍掉，比多跑一次還糟。
 
-第三步是自動發生的：推完 tag 之後，staging 那邊會自動 bump 到下一個版號。
-
-所以正常發版的動作只有兩個：**開 PR、推 tag**。
+下半段是十個 job，兩條線的名字跟順序完全一樣。接著直接沿著 job 圖，看一次 CI run 先後怎麼協作。
 
 ---
 
-## 6 · 四支手動 workflow，各管一件事
+## 6 · 一次建置跑過的 job
 
-`發版 / workflow 對照`
-
-在 Actions 介面上會看到四支要手動觸發的 workflow，名字有點長，但規則很一致。
-
-`Release Dev` 那支是給 staging 用的。Production 那三支：第一支開 staging → main 的 PR，第二支推 production tag，第三支是 hotfix 之前先把 main 的版號往上推。
-
-要注意的是**每一支都綁定分支**。所以不用怕在 main 上不小心點到 dev 那支——它會自己擋掉。
-
----
-
-## 7 · 只有 tag 會派發，而且 tag 與分支必須配對
-
-`發版 / 派發閘門`
-
-這頁回答一個很常見的疑問：為什麼我推了東西，CI 綠了，但 App 沒更新。
-
-因為**只有 tag 會派發**。推分支、開 PR、手動觸發，這些都只跑測試跟建置。
-
-第一，tag 的格式對不對，正規表達式卡得滿死的。第二，**這個 tag 真的長在那條線上**。所以你在 main 上推一個 `dev1.4.2`，建置會成功，但會跳過派發。
-
-另外被跳過派發的時候，run summary 上會掛一條 warning 說明原因，不會只留一個灰色的 skipped——那個太容易被誤讀成「已經發出去了」。
-
----
-
-## 8 · 同版本再發一次，後綴從 -2 開始
-
-`發版 / 重發`
-
-有時候同一個版本要發兩次，例如送審被打回來。
-
-這時候 workflow 會先列出遠端所有符合的 tag，算出這是第幾次發版，再決定 tag 名。第一次是純版號，第二次 `-2`，第三次 `-3`。
-
-**後綴數字對齊「第 N 次」的口語，所以沒有 -1**，這點常有人問。
-
-dev 線直接重跑就好；prod 線會擋下來要你勾一個確認——那道摩擦是刻意的，它要你先想清楚，如果這其實該是一個新版本，那就該 bump 而不是重發。
-
----
-
-## 9 · 兩條 CI 線的 workflow 長這樣
-
-`發版 / 兩份檔案`
-
-先看這兩份檔案本身。
-
-上半段是觸發條件，差別只有三個地方：監聽哪個分支、tag 的 glob 長怎樣、還有 production 線刻意不中斷正在跑的建置——它 `cancel-in-progress` 是 false，因為一次正式發版跑到一半被新的 push 砍掉，比多跑一次還糟。
-
-下半段是十個 job，兩條線的名字跟順序完全一樣。**每個 job 底下我都用三個點省略掉了，那才是重點：那些點加起來是兩百多行**，checkout、裝 Flutter、拉 submodule、簽章、上傳，兩邊幾乎一模一樣。
-
-下一頁先看這十個 job 跑起來的樣子，再回來講那兩百行怎麼處理。
-
----
-
-## 10 · 一次建置跑過的 job
-
-`發版 / 流程`
+`建置 / 流程`
 
 這是一次建置實際會跑到的 job。
 
@@ -133,63 +77,19 @@ dev 線直接重跑就好；prod 線會擋下來要你勾一個確認——那�
 
 再來 Android 跟 iOS 平行建置，最後才是派發那一層——**只有 tag 會走到最下面那格**。
 
-回到剛剛那個問題：這十個 job、兩百多行，兩條線幾乎一模一樣。如果真的複製兩份，改一個步驟就要記得改兩次，而「記得」這件事遲早會失敗。
+接下來不照 YAML 逐行念，而是沿著這張圖看三類真正決定建置結果的輸入：版號、build number 與環境設定。
 
 ---
 
-## 11 · 重複的步驟都抽成 composite action
-
-`發版 / 重複的處理`
-
-有人可能會問：兩條 CI 線是不是兩份幾乎一樣的 YAML，改一邊忘記另一邊怎麼辦。
-
-答案是重複的步驟都抽成 composite action 了。兩條線共用同一組 action，**環境差異只用 inputs 表達**。像 `build-android` 收 `environment` 跟 `build_aab`，dev 線傳 false、prod 線傳 true，就這樣而已。
-
-但我想講的其實是下面那個框：**抽出來還有一個不是為了 DRY 的理由。**
-
-這些步驟本來各自是一支 workflow，而 Actions 頁面左邊那排會把所有 workflow 列出來。那排長到你要找「發版要點哪一支」都得先掃一遍。放進 `.github/actions/` 之後它們就不出現在那排了——左邊只剩下真的需要人去點的那幾支。
-
-這是個很小的事，但它每天都在影響你用這個頁面的體驗。
-
----
-
-## 12 · PR 上那些機器人是誰
-
-`發版 / 身分`
-
-你在 PR 列表上會看到兩種非人類的操作者。
-
-一種是 `github-actions[bot]`，自動開 PR 的都是它。重點是那個 email：**數字是這個 bot 帳號的 user id**，加上 GitHub 的 noreply 網域，commit 才會正確歸到 bot 身上。寫錯的話 commit 會變成無主的，頭像是灰色的問號。
-
-兩種寫法都列在上面：自己 `git config` 的話寫那兩行；用 `create-pull-request` 這個 action 的話，直接把 committer 跟 author 指定成同一串。
-
-另外注意 token：這幾支用預設的 `GITHUB_TOKEN` 就夠，因為它們只要開 PR 給人看。下一頁講為什麼推 tag 不能用它。
-
----
-
-## 13 · 為什麼推 tag 需要 App token
-
-`發版 / token`
-
-這是一個踩過才會知道的地雷。
-
-GitHub 有一條防遞迴的規則：**用內建的 `GITHUB_TOKEN` 推上去的 ref，不會觸發任何 workflow**。所以如果用預設 token 推 tag，tag 會成功推上去，但 CI 完全不動，發版就斷在那裡，而且不會有任何錯誤訊息。
-
-解法是用 GitHub App 簽一個 installation token。為什麼不用個人 PAT？因為 PAT 綁人、會過期、人離職就壞掉。
-
-另外權限是收緊的：兩支 CI workflow 預設 `contents: read`，只有計數那個 job 提升成 write，避免其他 job 把一個可寫的 token 留在 `.git/config` 裡。
-
----
-
-## 14 · 章節轉場：版本
+## 7 · 章節轉場：建置的輸入
 
 （這張沒有講稿）
 
 ---
 
-## 15 · 版號：人決定前兩碼，CI 只動 patch
+## 8 · 版號：人決定前兩碼，CI 只動 patch
 
-`版本 / 版號`
+`inputs / resolve-version → build-android · build-ios`
 
 版號的唯一來源是 `pubspec.yaml`。這件事很重要：**CI 對版號不做任何轉換**，dev 跟 prod 讀的是同一個欄位。
 
@@ -199,9 +99,9 @@ GitHub 有一條防遞迴的規則：**用內建的 `GITHUB_TOKEN` 推上去的 
 
 ---
 
-## 16 · build number：年月加當月流水號，九位數
+## 9 · build number：年月加當月流水號，九位數
 
-`版本 / build number`
+`inputs / generate-build-number → build-android · build-ios`
 
 build number 只有一個硬性要求：單調遞增。剩下都是設計空間。
 
@@ -213,9 +113,9 @@ build number 只有一個硬性要求：單調遞增。剩下都是設計空間�
 
 ---
 
-## 17 · 兩種號碼來源長什麼樣
+## 10 · 兩種號碼來源長什麼樣
 
-`版本 / 狀態放哪`
+`inputs / generate-build-number 的狀態`
 
 「每個月第幾次」是一個必須跨 build 保存的狀態。CI 是無狀態的，所以這個數字得存在某個地方。
 
@@ -227,33 +127,29 @@ PR 那條就簡單了，直接拿 GitHub 給每個 run 的流水號取五位，�
 
 有人可能會問為什麼不用 Actions 的 cache 或 artifact——因為兩者都會過期，而版號的狀態不能過期。
 
----
-
-## 18 · 章節轉場：環境
-
-（這張沒有講稿）
+版本與 build number 都已經就緒；下一個 input 是 `environment`。它不像前兩個只是數字，還必須讓 Flutter、Android 與 iOS 取到同一組設定。
 
 ---
 
-## 19 · 環境設定就是這一份 JSON
+## 11 · 同一份 JSON，讓三層設定一起切換
 
-`環境 / 單一入口`
+`inputs / build-android · build-ios`
 
-這一章的地基就是這份檔案，所以我直接把它印出來。
+這是兩個 build job 共用的 `environment` input。它不是只要切一個環境變數：Flutter runtime、Android 的資源與 Firebase 設定、iOS 的 xcconfig 與 Firebase 設定都得一起換，否則 app 很容易拿到混搭的一組設定。
 
-一個環境一份，放在 `build_config/` 底下。看它的結構：上半段是**值**——app 名稱、icon 名稱、bundle id 後綴；下半段是**路徑**——這個環境的 Firebase 設定在哪、Android 的資源目錄在哪。
+所以把決策集中在一個檔案：一個環境一份，放在 `build_config/` 底下。上半段是**值**——app 名稱、icon 名稱、bundle id 後綴；下半段是**路徑**——這個環境的 Firebase 設定在哪、Android 的資源目錄在哪。
 
 標起來的那幾個欄位是等一下會一直出現的，先有印象就好。
 
 重點是下半段：**路徑是設定檔自己講的，不是程式從環境名稱推導的**。所以新增環境時，Android／iOS 的取值程式不用再加 `if/else`；放一份 JSON、把它指到的目錄建出來即可。CI 的分支、憑證與派發目標仍要另外配置，這裡講的是平台取值這一層。
 
-建置前會先跑一支 script 把它加工成 `dart-define.json`：合併你的 `.local` 覆寫、檢查必填欄位有沒有漏、抽出 Google 登入要用的 client ID。那份產物在 `.gitignore` 裡，不要 commit。
+兩個 action 的機制不同：Android 先把 JSON 加工成 `dart-define.json`；iOS 先從它產生 `AppConfig.xcconfig`，之後也用同一份 JSON 做 Flutter build。接下來就從標起來的欄位追下去：先看 `APP_CONFIG_SUFFIX` 怎麼決定身份，再看 Android 與 iOS 怎麼各自消費這些設定。
 
 ---
 
-## 20 · dev 跟正式版要能裝在同一台手機上
+## 12 · dev 跟正式版要能裝在同一台手機上
 
-`環境 / bundle id`
+`build-android · build-ios / app identity`
 
 為什麼 bundle id 要分？很單純：**因為 dev 版跟正式版要能同時裝在同一台手機上。**
 
@@ -265,9 +161,9 @@ PR 那條就簡單了，直接拿 GitHub 給每個 run 的流水號取五位，�
 
 ---
 
-## 21 · Android 怎麼拿到這些值
+## 13 · Android 怎麼拿到這些值
 
-`環境 / Android`
+`build-android / runtime + native settings`
 
 Android 這條路最短，因為 Gradle 解得開 dart-define 的內容。
 
@@ -279,9 +175,9 @@ Android 這條路最短，因為 Gradle 解得開 dart-define 的內容。
 
 ---
 
-## 22 · iOS 怎麼拿到這些值
+## 14 · iOS 怎麼拿到這些值
 
-`環境 / iOS`
+`build-ios / runtime + native settings`
 
 iOS 這條路多一站，因為 Xcode 讀不到 dart-define。
 
@@ -295,9 +191,9 @@ iOS 這條路多一站，因為 Xcode 讀不到 dart-define。
 
 ---
 
-## 23 · 有些東西沒有變數可用，只能把檔案複製到位
+## 15 · 有些東西沒有變數可用，只能把檔案複製到位
 
-`環境 / 檔案就位`
+`build-android · build-ios / file placement`
 
 變數能解決的都解決完了，剩下的只能用複製的。
 
@@ -309,9 +205,9 @@ iOS 這條路多一站，因為 Xcode 讀不到 dart-define。
 
 ---
 
-## 24 · Android：一個 Gradle task，掛在 plugin 前面
+## 16 · Android：一個 Gradle task，掛在 plugin 前面
 
-`環境 / Android 的複製`
+`build-android / Firebase config`
 
 這是 Android 那段複製的完整寫法，一個自己註冊的 task。
 
@@ -323,9 +219,9 @@ iOS 這條路多一站，因為 Xcode 讀不到 dart-define。
 
 ---
 
-## 25 · iOS：一行 cp，加一個掛在 Xcode 上的 build phase
+## 17 · iOS：一行 cp，加一個掛在 Xcode 上的 build phase
 
-`環境 / iOS 的複製`
+`build-ios / Firebase + launch image`
 
 iOS 這兩段複製發生在不同時機，這點很容易搞混。
 
@@ -339,9 +235,9 @@ Firebase 設定是跑 `generate_app_config.sh` 的時候複製的，跟上一頁
 
 ---
 
-## 26 · 一支 script 決定 iOS 的四個值
+## 18 · 一支 script 決定 iOS 的四個值
 
-`環境 / iOS 其餘變數`
+`build-ios / xcconfig`
 
 這四個值不是寫在 script 裡，而是從設定檔逐欄位讀出來的，跟 Android 讀的是同一份。
 
@@ -355,25 +251,7 @@ Firebase 設定是跑 `generate_app_config.sh` 的時候複製的，跟上一頁
 
 ---
 
-## 27 · 用 environment 隔離同名的 variable 與 secret
-
-`環境 / GitHub 設定`
-
-前面講的都是建置的差異，來源是 repo 裡的檔案。**派發的差異來源不一樣，是 GitHub 的設定。**
-
-上次講這頁我列了一大堆變數名稱，其實方向錯了。要講的其實只有一件事：**同一個變數名，不同 environment 給不同的值。**
-
-看上面那段：兩條線的 deploy job 結構相同，`environment:` 與 artifact 名稱跟著環境換；但變數名完全一樣。
-
-值在哪？在 GitHub 的 Settings → Environments 底下。development 跟 production 各自有一組同名的 variable 跟 secret，值不一樣。workflow 只寫名字，GitHub 依那行 `environment:` 決定要給哪一份。
-
-這樣的好處是：要換測試群組、換 Firebase app，改 GitHub 設定就好，不用動 repo、不用開 PR、不用重新 review。
-
-最後一點是一個坑：**build job 是刻意不掛 `environment:` 的**。掛了的話，environment 的 branch policy 會連 PR build 一起擋掉。
-
----
-
-## 28 · 同一件事，Android 原生有現成機制：flavor
+## 19 · 同一件事，Android 原生有現成機制：flavor
 
 `環境 / 對照`
 
@@ -385,7 +263,7 @@ Firebase 設定是跑 `generate_app_config.sh` 的時候複製的，跟上一頁
 
 ---
 
-## 29 · iOS 沒有 Android flavor 的一對一對應
+## 20 · iOS 沒有 Android flavor 的一對一對應
 
 `環境 / 對照`
 
@@ -399,7 +277,7 @@ iOS 這邊沒有 Android flavor 的一對一對應。Xcode 有 target、scheme �
 
 ---
 
-## 30 · 那為什麼這個專案沒走 flavor
+## 21 · 那為什麼這個專案沒走 flavor
 
 `環境 / 取捨`
 
@@ -413,7 +291,135 @@ iOS 這邊沒有 Android flavor 的一對一對應。Xcode 有 target、scheme �
 
 ---
 
-## 31 · 今天沒講的，都有對應的流程
+## 22 · 章節轉場：發版
+
+（這張沒有講稿）
+
+---
+
+## 23 · 什麼時候 CI 真的會 deploy？
+
+`發版 / 派發閘門`
+
+這頁回答一個很常見的疑問：為什麼我推了東西，CI 綠了，但 App 沒更新。
+
+因為**只有 tag 會派發**。推分支、開 PR、手動觸發，這些都只跑測試跟建置。
+
+第一，tag 的格式對不對，正規表達式卡得滿死的。第二，**這個 tag 真的長在那條線上**。所以你在 main 上推一個 `dev1.4.2`，建置會成功，但會跳過派發。
+
+另外被跳過派發的時候，run summary 上會掛一條 warning 說明原因，不會只留一個灰色的 skipped——那個太容易被誤讀成「已經發出去了」。
+
+---
+
+## 24 · 發 dev 與正式版，各按哪幾下
+
+`發版 / 主線`
+
+前面已經看過兩條 CI 的 job；現在只差最後一件事：怎麼讓它真的走到 deploy。
+
+開發版最短：在 staging 跑 `Push Dev Tag`，它 push `dev` tag 後就結束；GitHub 另外起 `CI: Development` 建置與派發。
+
+正式版多一段 review：先開 staging → main PR，merge 後在 main 跑 `Push Production Tag`。它 push `v` tag 後，才由 `CI: Production` 建置與派發。
+
+production tag 後的 bump／sync 是後續自動整理，不是這裡要手動多點的一步。
+
+---
+
+## 25 · 正常發版要手動點的三支入口
+
+`發版 / 手動入口`
+
+正常發版只需要認得這三支手動入口。
+
+`Release Dev` 在 staging 推 `dev` tag，後面真正跑的是 `CI: Development`。Production 則先開 staging → main PR，再在 main 推 `v` tag，後面真正跑的是 `CI: Production`。
+
+hotfix 是另一條情境，不混在正常發版入口；production tag 後的 bump／sync 也是自動接手。Actions 頁面上看到的 release run 跟 CI run 是**前後兩個 workflow run**，靠 tag 串起來。
+
+---
+
+## 26 · 注意：推 tag 不能用 `GITHUB_TOKEN`
+
+`發版 / 注意事項`
+
+這頁不是要展開 GitHub App 怎麼設定，只要記一個操作注意事項。
+
+GitHub 為了避免 workflow 遞迴，內建 `GITHUB_TOKEN` 推出的 ref 不會觸發 workflow。最容易誤判的症狀是：tag 已經在列表上，但 `CI: Development` 或 `CI: Production` 根本沒有新的 run。
+
+所以兩支 Push Tag workflow 用 GitHub App 的短效 installation token。看到 tag 被推上去之後，還要確認對應 CI run 已經起來；這才算發版真的開始。
+
+bump、sync、開 PR 則繼續用 `GITHUB_TOKEN`，因為它們不該再自動喚起下一輪 workflow。
+
+若有人問 token 怎麼拿，兩支 Push Tag workflow 的第一段就是 `actions/create-github-app-token`；但這次不展開 GitHub App 的設定步驟。
+
+---
+
+## 27 · 同版本再發一次，後綴從 -2 開始
+
+`發版 / 重發`
+
+有時候同一個版本要發兩次，例如送審被打回來。
+
+這時候 workflow 會先列出遠端所有符合的 tag，算出這是第幾次發版，再決定 tag 名。第一次是純版號，第二次 `-2`，第三次 `-3`。
+
+**後綴數字對齊「第 N 次」的口語，所以沒有 -1**，這點常有人問。
+
+dev 線直接重跑就好；prod 線會擋下來要你勾一個確認——那道摩擦是刻意的，它要你先想清楚，如果這其實該是一個新版本，那就該 bump 而不是重發。
+
+---
+
+## 28 · 章節轉場：GitHub Actions 補充
+
+（這張沒有講稿）
+
+---
+
+## 29 · 重複的步驟都抽成 composite action
+
+`補充 / 共用步驟`
+
+有人可能會問：兩條 CI 線是不是兩份幾乎一樣的 YAML，改一邊忘記另一邊怎麼辦。
+
+答案是重複的步驟都抽成 composite action 了。兩條線共用同一組 action，**環境差異只用 inputs 表達**。像 `build-android` 收 `environment` 跟 `build_aab`，dev 線傳 false、prod 線傳 true，就這樣而已。
+
+但我想講的其實是下面那個框：**抽出來還有一個不是為了 DRY 的理由。**
+
+這些步驟本來各自是一支 workflow，而 Actions 頁面左邊那排會把所有 workflow 列出來。那排長到你要找「發版要點哪一支」都得先掃一遍。放進 `.github/actions/` 之後它們就不出現在那排了——左邊只剩下真的需要人去點的那幾支。
+
+這是個很小的事，但它每天都在影響你用這個頁面的體驗。
+
+---
+
+## 30 · 用 environment 隔離同名的 variable 與 secret
+
+`補充 / GitHub environment`
+
+前面講的都是建置的差異，來源是 repo 裡的檔案。**派發的差異來源不一樣，是 GitHub 的設定。**
+
+這頁只要記一件事：**同一個變數名，不同 environment 給不同的值。**
+
+看上面那段：兩條線的 deploy job 結構相同，`environment:` 與 artifact 名稱跟著環境換；但變數名完全一樣。GitHub 依 job 上那行 `environment:`，決定給 development 還是 production 那一份。
+
+這樣的好處是：要換測試群組、換 Firebase app，改 GitHub 設定就好，不用動 repo、不用開 PR、不用重新 review。
+
+最後一點是一個坑：**build job 是刻意不掛 `environment:` 的**。掛了的話，environment 的 branch policy 會連 PR build 一起擋掉。
+
+---
+
+## 31 · 讓自動 PR／commit 正確顯示為機器人
+
+`補充 / bot 身分`
+
+這是一個讓 GitHub 顯示正確身分的小技巧。
+
+自動 bump／sync 與 hotfix prep 都會開 PR、產生 commit；name 用 `github-actions[bot]` 還不夠，email 的數字也必須是這個 bot 帳號的 user id，搭配 GitHub 的 noreply 網域，GitHub 才能正確歸戶。
+
+兩種寫法都列在上面：自己 `git config` 的話寫那兩行；用 `create-pull-request` 這個 action 的話，直接把 committer 跟 author 指定成同一串。
+
+這幾支只要開 PR，不需要喚起下一輪 CI，所以預設 `GITHUB_TOKEN` 就夠。
+
+---
+
+## 32 · 今天沒講的，都有對應的流程
 
 `收尾 / 邊界`
 
@@ -425,7 +431,7 @@ iOS 這邊沒有 Android flavor 的一對一對應。Xcode 有 target、scheme �
 
 ---
 
-## 32 · 帶走這四件事
+## 33 · 帶走這四件事
 
 `收尾`
 
@@ -443,7 +449,7 @@ iOS 這邊沒有 Android flavor 的一對一對應。Xcode 有 target、scheme �
 
 ---
 
-## 33 · 謝謝 / Q&A
+## 34 · 謝謝 / Q&A
 
 以上，謝謝大家。有什麼問題嗎？
 
