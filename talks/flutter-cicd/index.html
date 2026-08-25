@@ -1306,10 +1306,10 @@ deploy-firebase:
       <h2>帶走這四件事</h2>
       <div class="body">
         <ol class="steps">
-          <li><strong>分支決定一切。</strong> staging 走 <code>dev</code> tag 與 staging 專案，main 走 <code>v</code> tag 與 prod 專案，沒有第三種組合。</li>
-          <li><strong>只有 tag 會派發。</strong> 推分支與手動觸發只做測試與建置，也不會動到 build number 計數器。</li>
+          <li><strong>日常 CI 先建置驗證，發版才派發。</strong> 平常的 CI 只做測試與建置；只有配對的 tag 會把 CI 帶進 deploy。</li>
+          <li><strong>發版路由三者必須配對。</strong> staging → <code>dev</code> tag → staging 專案；main → <code>v</code> tag → prod 專案，沒有第三種組合。</li>
           <li><strong>版號只有一個來源，就是 <code>pubspec.yaml</code>。</strong> MAJOR / MINOR 人自己改，CI 只動 PATCH；build number 完全是 CI 的產物。</li>
-          <li><strong>平台環境差異只有一個入口，就是 <code>build_config/&lt;env&gt;.json</code>；變數解決不了的，用 script 把檔案複製到位。</strong> <code>AppConfig.xcconfig</code> 是產物，所以每個 iOS build 入口都必須先重產；這個案例的 Runner Pre-action 與 CI 已自動處理。</li>
+          <li><strong>環境設定只有一個入口，而且必須早期驗證。</strong> <code>build_config/&lt;env&gt;.json</code> 同時提供值與檔案路徑；平台轉接與檔案複製在建置前完成。</li>
         </ol>
       </div>
     </section>

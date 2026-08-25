@@ -806,22 +806,22 @@ deploy-firebase:
 ## 帶走這四件事
 @ 收尾
 
-1. **分支決定一切。** staging 走 `dev` tag 與 staging 專案，main 走 `v` tag 與 prod 專案，沒有第三種組合。
-2. **只有 tag 會派發。** 推分支與手動觸發只做測試與建置，也不會動到 build number 計數器。
+1. **日常 CI 先建置驗證，發版才派發。** 平常的 CI 只做測試與建置；只有配對的 tag 會把 CI 帶進 deploy。
+2. **發版路由三者必須配對。** staging → `dev` tag → staging 專案；main → `v` tag → prod 專案，沒有第三種組合。
 3. **版號只有一個來源，就是 `pubspec.yaml`。** MAJOR / MINOR 人自己改，CI 只動 PATCH；build number 完全是 CI 的產物。
-4. **平台環境差異只有一個入口，就是 `build_config/<env>.json`；變數解決不了的，用 script 把檔案複製到位。** `AppConfig.xcconfig` 是產物，所以每個 iOS build 入口都必須先重產；這個案例的 Runner Pre-action 與 CI 已自動處理。
+4. **環境設定只有一個入口，而且必須早期驗證。** `build_config/<env>.json` 同時提供值與檔案路徑；平台轉接與檔案複製在建置前完成。
 
 > 如果今天只帶走四件事：
 >
-> **第一，分支決定一切。** 這是開場那張圖。
+> **第一，日常 CI 先建置驗證，發版才派發。** 平常的 CI 只做測試與建置；真正把 CI 帶進 deploy 的，是符合規則的 tag。
 >
-> **第二，只有 tag 會派發。** 這回答了「為什麼我推了但沒發出去」。
+> **第二，發版路由三者必須配對。** staging 對 `dev` tag 與 staging 專案，main 對 `v` tag 與 prod 專案。tag 有推上去，不代表配錯來源也能發出去。
 >
 > **第三，版號只有一個來源。** 而且分工要記得：MAJOR 跟 MINOR 是人的事，CI 只動 PATCH，build number 完全不歸人管。
 >
-> **第四，環境差異只有一個入口，變數解決不了的就用 script 把檔案複製到位。** 這是今天環境那一章的全部——一份 JSON 說值也說路徑，剩下沒有變數可用的東西，用 script 在建置前把它們搬到位。
+> **第四，環境設定只有一個入口，而且必須早期驗證。** 一份 JSON 說值也說路徑；Android 與 iOS 各自轉接，固定檔名的檔案在建置前就位。缺 key、資源或路徑不要等下游工具安靜地拿錯。
 >
-> 這套做法的操作判準也在同一句話裡：**每個 iOS build 入口都要先重產 `AppConfig.xcconfig`。** 這個案例的 Runner Pre-action 與 CI 已自動處理；新增入口時要一起接上，而不是再要求人記一個步驟。
+> iOS 的操作判準也在這裡：**每個 build 入口都要先重產 `AppConfig.xcconfig`。** 這個案例的 Runner Pre-action 與 CI 已自動處理；新增入口時要一起接上，而不是再要求人記一個步驟。
 
 ## @thanks
 
