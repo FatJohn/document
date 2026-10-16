@@ -32,6 +32,23 @@ Skill 不只是 prompt 的集合，而是一種需要路由、組合、評估、
 
 這六問能把「Skill 很靈活」轉成「Skill 有可檢查的控制面」。
 
+## 我的補充與反思
+
+這場是我在 Day2 聽到最有明顯技術感的一場。SkillOps 是我新聽到的名詞。
+[SkillOps Atlas](https://skillops-studio-atlas.allanyiin.chatgpt.site/) 不只談概念，也提供路由觀念、情境 Prompt、Skill 套件與生命週期內容，值得拿一個小範圍試用。
+
+我看到的核心連接是：路由型 Studio 先從入口理解意圖，再依 context、證據與風險選擇模組，最後協調輸入、交棒、狀態與驗證。這和我全域規則裡的 `dispatch` 有相似結構，但我的版本是治理規則，不是 Skill runtime。
+
+我不會把所有全域規則直接轉成 Skill。比較合理的拆法是：
+
+- 不可違反的治理原則留在全域規則。
+- 有固定輸入、產出、限制與驗證的重複工作，轉成一般 Skill。
+- 根據意圖、證據與風險選擇模組的部分，整理成 router 或入口 Skill。
+- 失敗案例、負向案例與完成證據，轉成 Skill 的評估與回歸資料。
+
+這個網站把 Skill 的生命週期延伸到建立、驗證、發布、觀測、演化與退場。
+它也提醒我：Skill 化不只是把規則換成另一個檔案，而是要補上責任、路由、證據與維護方式。
+
 ## 這場的限制
 
 概念與生命週期方向很值得留，尤其是 routing、fallback、反例演化與完成證據；但示範平台、相容性限制與部分專名需要官方投影片或錄影才能精確引用。這場提供的是設計框架，不是現成的 Skill runtime 或跨平台規格。
@@ -46,4 +63,5 @@ Skill 不只是 prompt 的集合，而是一種需要路由、組合、評估、
 
 - [官方 session 5026](https://hwdc.ithome.com.tw/2026/session/5026)
 - [10/15 共筆](https://hackmd.io/@HWDC/2026/%2FIgPBdg-8S5WlcpD9IaP1-A)
+- [SkillOps Atlas｜讓技能，組成有序的力量](https://skillops-studio-atlas.allanyiin.chatgpt.site/)
 - [官方議程表](https://hwdc.ithome.com.tw/2026/agenda)

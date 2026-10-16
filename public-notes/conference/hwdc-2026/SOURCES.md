@@ -33,6 +33,10 @@
 | 05 每個人都有 AI，為什麼團隊還是這麼慢？ | [官方 session 5019](https://hwdc.ithome.com.tw/2026/session/5019) | [共筆](https://hackmd.io/@HWDC/2026/%2F6MPHpsTCQw-b5hxavB-g7A) |
 | 06 挖掘技能的全新可能性 <!-- allow-time-word --> | [官方 session 5026](https://hwdc.ithome.com.tw/2026/session/5026) | [共筆](https://hackmd.io/@HWDC/2026/%2FIgPBdg-8S5WlcpD9IaP1-A) |
 
+## 10/15 額外公開補充
+
+SkillOps Atlas：[讓技能，組成有序的力量](https://skillops-studio-atlas.allanyiin.chatgpt.site/)。
+
 ## 來源使用規則
 
 - 官方議程用來確認題目、日期、時間、會議室與講者。
